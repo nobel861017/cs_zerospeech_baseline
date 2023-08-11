@@ -1,4 +1,5 @@
-# ZeroSpeech Challenge 2021 Baseline System (Forked)
+#
+Multilingual ZeroSpeech Challenge 2021 Baseline System (Forked)
 
 This repository contains the baseline systems of the ZeroSpeech Challenge 2021.
 
