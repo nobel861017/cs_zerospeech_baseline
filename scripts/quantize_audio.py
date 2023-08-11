@@ -1,3 +1,7 @@
+import faulthandler
+faulthandler.enable()
+
+import fairseq
 import os
 import sys
 import json
@@ -6,12 +10,34 @@ import progressbar
 from pathlib import Path
 from random import shuffle
 from time import time
-
 import torch
-from cpc.dataset import findAllSeqs
-from cpc.feature_loader import buildFeature, buildFeature_batch
+from dataset import findAllSeqs, findAllSeqs_Mix
+from feature_loader import buildFeature, buildFeature_batch, buildFeature_S3PRL_batch, buildS3PRLFeature, buildXlsrFeature
 
-from utils.utils_functions import readArgs, writeArgs, loadCPCFeatureMaker, loadClusterModule
+
+#import s3prl.hub as hub
+from cpc.criterion.clustering import kMeanCluster
+#from utils_functions import readArgs, writeArgs, loadClusterModule
+
+def readArgs(pathArgs):
+    print(f"Loading args from {pathArgs}")
+    with open(pathArgs, 'r') as file:
+        args = argparse.Namespace(**json.load(file))
+    return args
+
+def writeArgs(pathArgs, args):
+    print(f"Writing args to {pathArgs}")
+    with open(pathArgs, 'w') as file:
+        json.dump(vars(args), file, indent=2)
+
+def loadClusterModule(pathCheckpoint):
+    """
+    Load CPC Clustering Module from Clustering checkpoint file.
+    """
+    state_dict = torch.load(pathCheckpoint, map_location=torch.device('cpu'))
+    clusterModule = kMeanCluster(torch.zeros(1, state_dict["n_clusters"], state_dict["dim"]))
+    clusterModule.load_state_dict(state_dict["state_dict"])
+    return clusterModule
 
 def quantize_file(file_path, cpc_feature_function, clusterModule):
     # Get CPC features
@@ -43,17 +69,17 @@ def parseArgs(argv):
     parser = argparse.ArgumentParser(description='Quantize audio files using CPC Clustering Module.')
     parser.add_argument('pathClusteringCheckpoint', type=str,
                         help='Path to the clustering checkpoint.')
-    parser.add_argument('pathDB', type=str,
-                        help='Path to the dataset that we want to quantize.')
     parser.add_argument('pathOutputDir', type=str,
                         help='Path to the output directory.')
+    parser.add_argument('--pathDB', type=str, nargs="*",
+                        help='Path to the dataset that we want to quantize.')
     parser.add_argument('--pathSeq', type=str,	
                        help='Path to the sequences (file names) to be included used '
                        '(if not speficied, included all files found in pathDB).')
     parser.add_argument('--split', type=str, default=None,
                         help='If you want to divide the dataset in small splits, specify it '
                         'with idxSplit-numSplits (idxSplit > 0), eg. --split 1-20.')
-    parser.add_argument('--file_extension', type=str, default="wav",
+    parser.add_argument('--file_extension', nargs='*', type=str, default=["wav", "flac"],
                           help="Extension of the audio files in the dataset (default: wav).")
     parser.add_argument('--max_size_seq', type=int, default=10240,
                         help='Maximal number of frames to consider '
@@ -76,6 +102,11 @@ def parseArgs(argv):
                         help="Run on a cpu machine.")
     parser.add_argument('--resume', action='store_true',
                         help="Continue to quantize if an output file already exists.")
+    #parser.add_argument('--model_type', default='hubert',
+    #                    help="Model in the list of s3prl upstream models.")
+
+    parser.add_argument('--cp_path', default='/work/b08202033/multilingual_zero_resource_challenge/xlsr2_960m_1000k.pt')
+
     return parser.parse_args(argv)
 
 def main(argv):
@@ -95,15 +126,23 @@ def main(argv):
         num_splits = int(num_splits)
 
     # Find all sequences
+    for i in range(len(args.pathDB)):
+        args.pathDB[i] = os.path.abspath(args.pathDB[i])
+
     print("")
     print(f"Looking for all {args.file_extension} files in {args.pathDB}")
-    seqNames, _ = findAllSeqs(args.pathDB,
+    seqNames, _ = findAllSeqs_Mix(args.pathDB,
                                  speaker_level=1,
                                  extension=args.file_extension,
                                  loadCache=True)
-    if len(seqNames) == 0 or not os.path.splitext(seqNames[0][1])[1].endswith(args.file_extension):
+    print(f"Done! Found {len(seqNames)} files!")
+    flag = len(seqNames) == 0
+    for ex in args.file_extension:
+        flag = flag and (not os.path.splitext(seqNames[0][1])[1].endswith(ex))
+    #if len(seqNames) == 0 or not os.path.splitext(seqNames[0][1])[1].endswith(args.file_extension):
+    if flag:
         print(f"Seems like the _seq_cache.txt does not contain the correct extension, reload the file list")
-        seqNames, _ = findAllSeqs(args.pathDB,
+        seqNames, _ = findAllSeqs_Mix(args.pathDB,
                                     speaker_level=1,
                                     extension=args.file_extension,
                                     loadCache=False)
@@ -114,14 +153,18 @@ def main(argv):
         print("")
         print(f"Filtering seqs in {args.pathSeq}")
         with open(args.pathSeq, 'r') as f:	
-            seqs = set([x.strip() for x in f])	
+            seqs = set([x.strip() for x in f])
+
         filtered = []	
-        for s in seqNames:	
-            if os.path.splitext(s[1].split('/')[-1])[0] in seqs:	
+        for s in seqNames:
+            #if os.path.splitext(s[1].split('/')[-1])[0] in seqs:
+            if s[1] in seqs:	
                 filtered.append(s)	
         seqNames = filtered
+        print(seqNames)
         print(f"Done! {len(seqNames)} files filtered!")
-
+    print(seqNames)
+    assert True==False
     # Check if directory exists
     if not os.path.exists(args.pathOutputDir):
         print("")
@@ -193,31 +236,39 @@ def main(argv):
     clusterModule = loadClusterModule(args.pathClusteringCheckpoint)
     if not args.cpu:
         clusterModule.cuda()
-    print("ClusterModule loaded!")
+    print(f"ClusterModule trained on {clustering_args.cp_path} is successfully loaded!")
 
     # Get the CPC checkpoint path from clustering args
-    if not os.path.isabs(clustering_args.pathCheckpoint): # Maybe it's relative path
-        clustering_args.pathCheckpoint = os.path.join(os.path.dirname(os.path.abspath(args.pathClusteringCheckpoint)), clustering_args.pathCheckpoint)
-    assert os.path.exists(clustering_args.pathCheckpoint), \
-        f"CPC path at {clustering_args.pathCheckpoint} does not exist!!"
+    #if not os.path.isabs(clustering_args.pathCheckpoint): # Maybe it's relative path
+        #clustering_args.pathCheckpoint = os.path.join(os.path.dirname(os.path.abspath(args.pathClusteringCheckpoint)), clustering_args.pathCheckpoint)
+    #assert os.path.exists(clustering_args.pathCheckpoint), \
+        #f"CPC path at {clustering_args.pathCheckpoint} does not exist!!"
 
     # Load FeatureMaker
-    print("")
-    print(f"Loading CPC FeatureMaker from {clustering_args.pathCheckpoint}")
+    #print("")
+    #print(f"Loading CPC FeatureMaker from {clustering_args.pathCheckpoint}")
     ## If we don't apply batch implementation, we can set LSTM model to keep hidden units
     ## making the quality of the quantized units better (that's why I set keep_hidden=args.nobatch)
-    featureMaker = loadCPCFeatureMaker(
-                        clustering_args.pathCheckpoint, 
-                        gru_level=vars(clustering_args).get('level_gru', None), 
-                        get_encoded=clustering_args.encoder_layer, 
-                        keep_hidden=args.nobatch)
-    if clustering_args.dimReduction is not None:
-        dimRed = loadDimReduction(clustering_args.dimReduction, clustering_args.centroidLimits)
-        featureMaker = torch.nn.Sequential(featureMaker, dimRed)
-    if not clustering_args.train_mode:
-        featureMaker.eval()
-    if not args.cpu:
-        featureMaker.cuda()
+    #featureMaker = loadCPCFeatureMaker(
+                        #clustering_args.pathCheckpoint, 
+                        #gru_level=vars(clustering_args).get('level_gru', None), 
+                        #get_encoded=clustering_args.encoder_layer, 
+                        #keep_hidden=args.nobatch)
+    #featureMaker = getattr(hub, args.model_type)()
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    #featureMaker = featureMaker.to(device).eval()
+    model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([args.cp_path])
+    featureMaker = model[0].to(device).eval()
+
+
+    print(f'Successfully loaded {args.cp_path} on {device}!')
+    #if clustering_args.dimReduction is not None:
+        #dimRed = loadDimReduction(clustering_args.dimReduction, clustering_args.centroidLimits)
+        #featureMaker = torch.nn.Sequential(featureMaker, dimRed)
+    #if not clustering_args.train_mode:
+        #featureMaker.eval()
+    #if not args.cpu:
+        #featureMaker.cuda()
     def cpc_feature_function(x): 
         if args.nobatch is False:
             return buildFeature_batch(featureMaker, x,
@@ -229,7 +280,14 @@ def main(argv):
              return buildFeature(featureMaker, x,
                                 seqNorm=False,
                                 strict=args.strict)
-    print("CPC FeatureMaker loaded!")
+    def s3prl_feature_function(x):
+            return buildS3PRLFeature(featureMaker.eval(), x,
+                                seqNorm=False,
+                                strict=args.strict)
+
+    def xlsr_feature_function(x):
+            return buildXlsrFeature(featureMaker.eval(), x, seqNorm=False, strict=args.strict)
+    #print(f"Successfully loaded {clustering_args.model_type} from s3prl!")
 
     # Quantization of files
     print("")
@@ -242,11 +300,11 @@ def main(argv):
         bar.update(index)
 
         file_path = vals[1]
-        file_path = os.path.join(args.pathDB, file_path)
-
+        #file_path = os.path.join(args.pathDB, file_path)
+        file_path = Path(file_path)
         # Quantizing
-        quantLine = quantize_file(file_path, cpc_feature_function, clusterModule)
-
+        quantLine = quantize_file(file_path, xlsr_feature_function, clusterModule)
+        #print(quantLine)
         # Save the outputs
         file_name = os.path.splitext(os.path.basename(file_path))[0]
         outLine = "\t".join([file_name, quantLine])

@@ -3,8 +3,9 @@ from os.path import exists, join, basename, dirname, abspath
 import sys
 import argparse
 
-from utils.utils_functions import loadLSTMLMCheckpoint
-from utils.lm_scoring import compute_proba_LSTM
+from utils_functions import loadLSTMLMCheckpoint
+
+from lm_scoring import compute_proba_LSTM
 
 def parseArgs(argv):
     # Run parameters
@@ -19,8 +20,8 @@ def parseArgs(argv):
     parser.add_argument('--dict', type=str,	
                        help='Path to the dictionary file (dict.txt) used to train the LSTM model'
                        '(if not speficied, look for dict.txt in the model directory)')
-    parser.add_argument('--batchSize', type=int, default=128,
-                        help='The number of sentences to be in each batch (defaut: 128)')
+    parser.add_argument('--batchSize', type=int, default=64,
+                        help='The number of sentences to be in each batch (defaut: 64)')
     parser.add_argument('--cpu', action='store_true',
                         help="Run on a cpu machine.")
     parser.add_argument('--resume', action='store_true',

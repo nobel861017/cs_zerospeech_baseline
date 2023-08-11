@@ -3,8 +3,8 @@ from os.path import exists, join, basename, dirname, abspath
 import sys
 import argparse
 
-from utils.utils_functions import loadRobertaCheckpoint
-from utils.lm_scoring import compute_proba_BERT_mlm_span
+from utils_functions import loadRobertaCheckpoint
+from lm_scoring import compute_proba_BERT_mlm_span
 
 def parseArgs(argv):
     # Run parameters
@@ -31,7 +31,7 @@ def parseArgs(argv):
     parser.add_argument('--batchsen_size', type=int, default=32,
                         help='The number of sentences to be considered in each outer batch'
                         '(batch of sentences) (defaut: 32). Decrease this for longer sentences (BLIMP).')
-    parser.add_argument('--inner_batch_size', type=int, default=128,
+    parser.add_argument('--inner_batch_size', type=int, default=32,
                         help='For each sentence, the model has to compute the outputs of many different'
                         'masked sequences. This parameter controls the size of the inner batches for'
                         'each outer batch (defaut: 128). Decrease this for longer sentences (BLIMP).')
@@ -60,10 +60,12 @@ def main(argv):
     with open(args.pathQuantizedUnits, 'r') as f:
         for line in f:
             file_name, file_seq = line.strip().split("\t")
+            #file_name, file_seq = line.strip().split("   ")
             # Convert sequence to the desired input form
             file_seq = file_seq.replace(",", " ")
+            #print(file_name)
             # Add to lists
-            input_file_names.append(file_name)
+            input_file_names.append(file_name.replace(' ', ''))
             intput_file_seqs.append(file_seq)
     print(f"Found {len(input_file_names)} sequences!")
 
