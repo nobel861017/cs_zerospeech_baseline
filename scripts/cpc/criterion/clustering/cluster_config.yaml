@@ -1,0 +1,31 @@
+runner:
+  pathOutput: "/work/b08202033/zerospeech2021_baseline/checkpoints/code_switch_kmeans_100cluster/kmeans_30iter.pt"
+  nClusters: 100
+  nGroups: 1
+  debug: False
+  encoder_layer: False
+  level_gru: None
+  DPMean: False
+  DPLambda: 11
+  perIterSize: -1
+  train_mode: False
+  dimReduction: null
+  centroidLimits: null
+  getDistanceEstimation: False
+  MAX_ITER: 30
+  save: True
+  load: True
+  save_last: 5
+  cp_path: "/work/b08202033/multilingual_zero_resource_challenge/xlsr2_960m_1000k.pt"
+  epsilon: 0.0001
+
+
+data:
+  recursionLevel: 1
+  extension: ['.flac', '.wav']
+  seqList: null
+  sizeWindow: 10240
+  batchSizeGPU: 100
+  pathDB: ["/work/b08202033/multilingual_zero_resource_challenge/datasets/cs_mono/wav/en_zh/train/correct", "/work/b08202033/multilingual_zero_resource_challenge/datasets/cs_mono/wav/es_en/train/correct", 
+            "/work/b08202033/multilingual_zero_resource_challenge/datasets/cs_mono/wav/fr_en/train/correct", "/work/b08202033/multilingual_zero_resource_challenge/datasets/cs_mono/wav/zh_en/train/correct"]
+  
