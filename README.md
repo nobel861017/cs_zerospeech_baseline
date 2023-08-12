@@ -3,10 +3,11 @@
 ## Environment
 All packages are specified in requirements.txt
 
-`pip install -r requirements.txt`
-
-`cd zerospeech2021_baseline`
-
+```
+git clone https://github.com/nobel861017/zerospeech2021_baseline
+cd zerospeech2021_baseline
+pip install -r requirements.txt
+```
 ## Downloading pre-trained XLSR and XLMR model
 Please first download the pretrained model.
    
