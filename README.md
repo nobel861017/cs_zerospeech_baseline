@@ -21,7 +21,7 @@ python zerospeech2021_baseline/scripts/cpc/criterion/clustering/clustering_scrip
 * Quantize audio
 ```
 python zerospeech2021_baseline/scripts/quantize_audio.py \
-path/to/kmeans/cluster/checkpoint path/to/the/output --config quantize_config.yaml
+path/to/kmeans/cluster/checkpoint path/to/the/output/dir --config quantize_config.yaml
 ```
 * Deduplicating
   
