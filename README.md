@@ -4,6 +4,7 @@
 All packages are specified in requirements.txt
 
 `pip install -r requirements.txt`
+
 `cd zerospeech2021_baseline`
 
 ## Downloading pre-trained XLSR and XLMR model
