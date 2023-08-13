@@ -1,7 +1,6 @@
 import os
 import yaml
 import argparse
-import collections
 import soundfile as sf
 
 from pathlib import Path
@@ -23,7 +22,8 @@ if __name__ == "__main__":
     
     for lang, total_seconds in zip(lang_list, total_seconds_list):
         data_path = os.path.join(os.path.join(cs_data_root, lang), "train/correct/")
-        wav_files = list(map(str, list(Path(args.data).rglob("*.wav"))))
+        wav_files = list(map(str, list(Path(data_path).rglob("*.wav"))))
+        assert len(wav_files) > 0
         len_count = 0
         idx = 0
         while (True):

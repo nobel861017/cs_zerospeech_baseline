@@ -1,4 +1,4 @@
 cs_data_root: "/work/gerber68/Data/cs_mono/wav"
-lang: ["es-en", "fr-en", "zh-en"]
+lang: ["es_en", "fr_en", "zh_en"]
 hr: [34, 34, 32]
 output: "/work/gerber68/Data/cs_mono_sampled/wav"
