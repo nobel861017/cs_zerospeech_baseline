@@ -108,7 +108,6 @@ if __name__ == "__main__":
             f"The output file {pathOutput} already exists, please check the option --load !"
         assert os.path.exists(os.path.join(os.path.dirname(pathOutput), "checkpoint_last.pt")) is False, \
             f"Found last_checkpoint.pt in the output directory, please check the option --load !"
-    
     recursionLevel = config['data']['recursionLevel']
     extension = config['data']['extension']
     seqNames, speakers = findAllSeqs_Mix(pathDB,
@@ -150,6 +149,7 @@ if __name__ == "__main__":
     batchSize = batchSizeGPU * nGPUs
     trainLoader = dataset.getDataLoader(batchSize, "uniform",
                                         False, numWorkers=16)
+    device_ids = list(range(nGPUs))
     print(f"Length of dataLoader: {len(trainLoader)}")
     print("")
 
@@ -179,9 +179,11 @@ if __name__ == "__main__":
     if not os.path.exists(os.path.dirname(pathOutput)) and os.path.dirname(pathOutput):
         Path(os.path.dirname(pathOutput)).mkdir(parents=True, exist_ok=True)
 
-    pathConfig = f"{os.path.splitext(pathOutput)[0]}_args.json"
+    pathConfig = f"{os.path.splitext(pathOutput)[0]}_args.yaml"
+    #with open(pathConfig, 'w') as file:
+    #    json.dump(vars(args), file, indent=2)
     with open(pathConfig, 'w') as file:
-        json.dump(vars(args), file, indent=2)
+        documents = yaml.dump(config, file)
 
     out_state_dict = {}
     print("Starting the clustering...")
@@ -194,6 +196,7 @@ if __name__ == "__main__":
                             save_dir=os.path.dirname(pathOutput),
                             save_last=config['runner']['save_last'],
                             EPSILON=config['runner']['epsilon'],
+                            device_ids=device_ids
                             ).cpu()
 
     print(f'Ran clustering '
