@@ -1,9 +1,5 @@
 # multilingual zero resource challenge
 
-## Environment
-All packages are specified in requirements.txt
-
-`pip install -r requirements.txt`
 
 ## Downloading pre-trained XLSR and XLMR model
 Please first download the pretrained model.
@@ -15,19 +11,19 @@ xlmr.base: https://dl.fbaipublicfiles.com/fairseq/models/xlmr.base.tar.gz
 ## Training
 * Train the K-means
 ```  
-python zerospeech2021_baseline/scripts/cpc/criterion/clustering/clustering_script.py \
+python scripts/cpc/criterion/clustering/clustering_script.py \
 --config cluster_config.yaml
 ```
 * Quantize audio
 ```
-python zerospeech2021_baseline/scripts/quantize_audio.py \
+python scripts/quantize_audio.py \
 path/to/kmeans/cluster/checkpoint path/to/the/output/dir --config quantize_config.yaml
 ```
 * Deduplicating
   
 Note that the audios having more than `max_units` units after deduplicating will be excluded since they exceed the max tokens the model can receive.
 ```
-python CPC_audio/zerospeech2021_baseline/scripts/deduplicate.py \
+python scripts/deduplicate.py \
 --file_name /path/to/the/quantized/units \
 --output /path/to/the/output/deduplicated/units \
 --deleted_path /path/to/the/excluded/audios --max_units 512 --convert
@@ -42,7 +38,7 @@ fairseq-preprocess --only-source --trainpref /path/to/quantized/training/set \
   
 Please note that for a XLMR-like architecture, the max-positions should be set to 512.
 ```
-fairseq-train --fp16 /path/to/the/bonarized/data --task masked_lm \
+fairseq-train --fp16 /path/to/the/binarized/data --task masked_lm \
 --criterion masked_lm --save-dir /path/to/the/resulting/checkpoints \
 --keep-last-epochs 5 --train-subset train --num-workers 32 --arch roberta_base \
 --optimizer adam --adam-betas '(0.9, 0.98)' --adam-eps 1e-06 --clip-norm 0.0 \
@@ -57,8 +53,12 @@ Note: According to the repo of ZeroSpeech, the `update-freq` should be set to `1
 ## Testing
 * Compute the pseudo-probability
 ```
-python CPC_audio/zerospeech2021_baseline/scripts/compute_proba_BERT.py /path/to/the/quantized/units \
+python scripts/compute_proba_BERT.py /path/to/the/quantized/units \
 /path/to/the/output/ /path/to/the/LM 
 ```
-
+* Evalution
+```
+python scripts/evaluate.py --input /path/to/the/pseudo/probability/file
+```
+The accuracy will be printed.
 
