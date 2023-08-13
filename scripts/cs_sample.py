@@ -13,7 +13,8 @@ if __name__ == "__main__":
     with open(args.config, "r") as fp:
         config = yaml.load(fp)
     
-    cs_data_root = config["cs_data_root"]
+    config = config["cs"]
+    cs_data_root = config["data_root"]
     lang_list = config["lang"]
     hr_list = config["hr"]
     output_dir = config["output"]
