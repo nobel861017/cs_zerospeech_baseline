@@ -21,6 +21,9 @@ if __name__ == "__main__":
     output_dir = config["output"]
 
     total_seconds_list = [h*3600 for h in hr_list]
+    
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
 
     for lang, total_seconds, ext in zip(lang_list, total_seconds_list, ext_list):
         data_path = os.path.join(mono_data_root, lang)
