@@ -24,6 +24,9 @@ if __name__ == "__main__":
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
     
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
+
     for lang, total_seconds in zip(lang_list, total_seconds_list):
         data_path = os.path.join(os.path.join(cs_data_root, lang), "train/correct/")
         wav_files = list(map(str, list(Path(data_path).rglob("*.wav"))))

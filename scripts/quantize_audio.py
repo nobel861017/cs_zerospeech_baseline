@@ -37,7 +37,7 @@ def loadClusterModule(pathCheckpoint):
     state_dict = torch.load(pathCheckpoint, map_location=torch.device('cpu'))
     clusterModule = kMeanCluster(torch.zeros(1, state_dict["n_clusters"], state_dict["dim"]))
     clusterModule.load_state_dict(state_dict["state_dict"])
-    return clusterModule
+    return clusterModule.eval()
 
 def quantize_file(file_path, cpc_feature_function, clusterModule):
     # Get CPC features
@@ -67,11 +67,11 @@ def quantize_file(file_path, cpc_feature_function, clusterModule):
 def parseArgs(argv):
     # Run parameters
     parser = argparse.ArgumentParser(description='Quantize audio files using CPC Clustering Module.')
-    parser.add_argument('--config', type=str, default='quantize_config.yaml', help='The path to the config file.')
     parser.add_argument('pathClusteringCheckpoint', type=str,
                         help='Path to the clustering checkpoint.')
     parser.add_argument('pathOutputDir', type=str,
                         help='Path to the output directory.')
+    parser.add_argument('--config', type=str, default='quantize_config.yaml', help='The path to the config file.')
     #parser.add_argument('--pathDB', type=str, nargs="*",
     #                    help='Path to the dataset that we want to quantize.')
     #parser.add_argument('--pathSeq', type=str,	
@@ -168,14 +168,16 @@ def main(argv):
         print(seqNames)
         print(f"Done! {len(seqNames)} files filtered!")
         
-    print(seqNames)
+    #print(seqNames)
     # Check if directory exists
     if not os.path.exists(args.pathOutputDir):
         print("")
         print(f"Creating the output directory at {args.pathOutputDir}")
         Path(args.pathOutputDir).mkdir(parents=True, exist_ok=True)
-    writeArgs(os.path.join(args.pathOutputDir, "_info_args.json"), args)
+    #writeArgs(os.path.join(args.pathOutputDir, "_info_args.json"), args)
 
+    with open(os.path.join(args.pathOutputDir, "_info_args.yaml"), 'w') as file:
+        documents = yaml.dump(config, file)
     # Check if output file exists
     if not config['data']['split']:
         nameOutput = "quantized_outputs.txt"
@@ -201,6 +203,7 @@ def main(argv):
         print(f"Debug mode activated, only load {nsamples} samples!")
         # shuffle(seqNames)
         seqNames = seqNames[:nsamples]
+        print(seqNames)
 
     # Continue
     addEndLine = False # to add end line (\n) to first line or not
@@ -209,7 +212,8 @@ def main(argv):
             with open(outputFile, 'r') as f:
                 lines = [line for line in f]
             existing_files = set([x.split()[0] for x in lines if x.split()])
-            seqNames = [s for s in seqNames if os.path.splitext(s[1].split('/')[-1])[0] not in existing_files]
+            #seqNames = [s for s in seqNames if os.path.splitext(s[1].split('/')[-1])[0] not in existing_files]
+            seqNames = [s for s in seqNames if str(s[1]) not in existing_files]
             print(f"Found existing output file, continue to quantize {len(seqNames)} audio files left!")
             if len(lines) > 0 and not lines[-1].endswith("\n"):
                 addEndLine = True
@@ -220,24 +224,33 @@ def main(argv):
     assert len(seqNames) > 0, \
         "No file to be quantized!"
 
+    '''
     # Load Clustering args
     assert args.pathClusteringCheckpoint[-3:] == ".pt"
-    if os.path.exists(args.pathClusteringCheckpoint[:-3] + "_args.json"):
-        pathConfig = args.pathClusteringCheckpoint[:-3] + "_args.json"
-    elif os.path.exists(os.path.join(os.path.dirname(args.pathClusteringCheckpoint), "checkpoint_args.json")):
-        pathConfig = os.path.join(os.path.dirname(args.pathClusteringCheckpoint), "checkpoint_args.json")
+    if os.path.exists(args.pathClusteringCheckpoint[:-3] + "_args.yaml"):
+        pathConfig = args.pathClusteringCheckpoint[:-3] + "_args.yaml"
+    elif os.path.exists(os.path.join(os.path.dirname(args.pathClusteringCheckpoint), "checkpoint_args.yaml")):
+        pathConfig = os.path.join(os.path.dirname(args.pathClusteringCheckpoint), "checkpoint_args.yaml")
     else:
         assert False, \
             f"Args file not found in the directory {os.path.dirname(args.pathClusteringCheckpoint)}"
-    clustering_args = readArgs(pathConfig)
+    
+    with open(pathConfig, 'r') as f:
+        cluster_config = yaml.load(f, Loader=yaml.FullLoader)
+    
     print("")
-    print(f"Clutering args:\n{json.dumps(vars(clustering_args), indent=4, sort_keys=True)}")
-    print('-' * 50)
+    print("Cluster args:", cluster_config)
+    print("-"*50)
+    #clustering_args = readArgs(pathConfig)
+    #print("")
+    #print(f"Clutering args:\n{json.dumps(vars(clustering_args), indent=4, sort_keys=True)}")
+    #print('-' * 50)
 
+    '''
     # Load CluterModule
     print("")
     print(f"Loading ClusterModule at {args.pathClusteringCheckpoint}")
-    clusterModule = loadClusterModule(args.pathClusteringCheckpoint)
+    clusterModule = loadClusterModule(args.pathClusteringCheckpoint).eval()
     if not config['runner']['cpu']:
         clusterModule.cuda()
     # print(f"ClusterModule trained on {clustering_args.cp_path} is successfully loaded!")
@@ -262,10 +275,10 @@ def main(argv):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     #featureMaker = featureMaker.to(device).eval()
     model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([config['runner']['cp_path']])
-    featureMaker = model[0].to(device).eval()
+    featureMaker = model[0].eval().to(device)
 
 
-    print(f'Successfully loaded {config['runner']['cp_path']} on {device}!')
+    print(f'Successfully loaded {config["runner"]["cp_path"]} on {device}!')
     #if clustering_args.dimReduction is not None:
         #dimRed = loadDimReduction(clustering_args.dimReduction, clustering_args.centroidLimits)
         #featureMaker = torch.nn.Sequential(featureMaker, dimRed)
@@ -291,7 +304,7 @@ def main(argv):
                                 strict=args.strict)
     '''
     def xlsr_feature_function(x):
-            return buildXlsrFeature(featureMaker.eval(), x, seqNorm=False, strict=config['runner'['strict']])
+            return buildXlsrFeature(featureMaker.eval(), x, seqNorm=False, strict=config['runner']['strict'])
     #print(f"Successfully loaded {clustering_args.model_type} from s3prl!")
 
     # Quantization of files
@@ -311,7 +324,7 @@ def main(argv):
         quantLine = quantize_file(file_path, xlsr_feature_function, clusterModule)
         #print(quantLine)
         # Save the outputs
-        file_name = os.path.splitext(os.path.basename(file_path))[0]
+        file_name = str(file_path)
         outLine = "\t".join([file_name, quantLine])
         if addEndLine:
             f.write("\n"+outLine)

@@ -390,7 +390,7 @@ def buildFeature_batch(featureMaker, seqPath, strict=False,
             
     out = torch.cat(out, dim=1)
     return out
-
+'''
 def buildFeature_S3PRL_batch(featureMaker, seqPath, strict=False,
                  maxSizeSeq=8000, seqNorm=False, batch_size=8):
     r"""
@@ -453,12 +453,12 @@ def buildFeature_S3PRL_batch(featureMaker, seqPath, strict=False,
             
     out = torch.cat(out, dim=1)
     return out
-
+'''
 def buildXlsrFeature(featureMaker, seqPath, strict=False,
                  maxSizeSeq=64000, seqNorm=False):
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    featureMaker.eval()
+    featureMaker.eval().to(device)
     seq, sample_rate = torchaudio.load(seqPath) # (1, seq_length)
     
     sizeSeq = seq.shape[1]
@@ -495,7 +495,7 @@ def buildXlsrFeature(featureMaker, seqPath, strict=False,
         #print(type(subseq), len(subseq), subseq[0].shape)
         with torch.no_grad():
             if start<end:
-                features = featureMaker(subseq, features_only=True)["x"]
+                features = featureMaker(subseq, features_only=True, mask=False)["x"]
                 #print(features.shape)
                 if seqNorm:
                     features = seqNormalization(features)
@@ -507,7 +507,7 @@ def buildXlsrFeature(featureMaker, seqPath, strict=False,
         #subseq = seq[0][-maxSizeSeq:]
         subseq = seq.squeeze()[-maxSizeSeq:].unsqueeze(0).to(device)
         with torch.no_grad():
-                features = featureMaker(subseq, features_only=True)["x"]
+                features = featureMaker(subseq, features_only=True, mask=False)["x"]
                 if seqNorm:
                     features = seqNormalization(features)
         delta = (sizeSeq - start)*1000 // (sample_rate*20)
@@ -516,3 +516,4 @@ def buildXlsrFeature(featureMaker, seqPath, strict=False,
 
     out = torch.cat(out, dim=0)
     return out
+
