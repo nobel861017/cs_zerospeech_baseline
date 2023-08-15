@@ -37,7 +37,7 @@ def loadClusterModule(pathCheckpoint):
     state_dict = torch.load(pathCheckpoint, map_location=torch.device('cpu'))
     clusterModule = kMeanCluster(torch.zeros(1, state_dict["n_clusters"], state_dict["dim"]))
     clusterModule.load_state_dict(state_dict["state_dict"])
-    return clusterModule
+    return clusterModule.eval()
 
 def quantize_file(file_path, cpc_feature_function, clusterModule):
     # Get CPC features
@@ -168,7 +168,7 @@ def main(argv):
         print(seqNames)
         print(f"Done! {len(seqNames)} files filtered!")
         
-    print(seqNames)
+    #print(seqNames)
     # Check if directory exists
     if not os.path.exists(args.pathOutputDir):
         print("")
@@ -203,6 +203,7 @@ def main(argv):
         print(f"Debug mode activated, only load {nsamples} samples!")
         # shuffle(seqNames)
         seqNames = seqNames[:nsamples]
+        print(seqNames)
 
     # Continue
     addEndLine = False # to add end line (\n) to first line or not
@@ -223,6 +224,7 @@ def main(argv):
     assert len(seqNames) > 0, \
         "No file to be quantized!"
 
+    '''
     # Load Clustering args
     assert args.pathClusteringCheckpoint[-3:] == ".pt"
     if os.path.exists(args.pathClusteringCheckpoint[:-3] + "_args.yaml"):
@@ -244,10 +246,11 @@ def main(argv):
     #print(f"Clutering args:\n{json.dumps(vars(clustering_args), indent=4, sort_keys=True)}")
     #print('-' * 50)
 
+    '''
     # Load CluterModule
     print("")
     print(f"Loading ClusterModule at {args.pathClusteringCheckpoint}")
-    clusterModule = loadClusterModule(args.pathClusteringCheckpoint)
+    clusterModule = loadClusterModule(args.pathClusteringCheckpoint).eval()
     if not config['runner']['cpu']:
         clusterModule.cuda()
     # print(f"ClusterModule trained on {clustering_args.cp_path} is successfully loaded!")
@@ -272,7 +275,7 @@ def main(argv):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     #featureMaker = featureMaker.to(device).eval()
     model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([config['runner']['cp_path']])
-    featureMaker = model[0].to(device).eval()
+    featureMaker = model[0].eval().to(device)
 
 
     print(f'Successfully loaded {config["runner"]["cp_path"]} on {device}!')
