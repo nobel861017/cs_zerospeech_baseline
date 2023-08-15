@@ -11,7 +11,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with open(args.config, "r") as fp:
-        config = yaml.load(fp)
+        config = yaml.load(fp, Loader=yaml.FullLoader)
     
     cs_data_root = config["cs_data_root"]
     lang_list = config["lang"]
@@ -20,6 +20,9 @@ if __name__ == "__main__":
 
     total_seconds_list = [h*3600 for h in hr_list]
     
+    if not os.path.isdir(output_dir):
+        os.mkdir(output_dir)
+
     for lang, total_seconds in zip(lang_list, total_seconds_list):
         data_path = os.path.join(os.path.join(cs_data_root, lang), "train/correct/")
         wav_files = list(map(str, list(Path(data_path).rglob("*.wav"))))
