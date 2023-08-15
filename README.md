@@ -12,7 +12,7 @@ xlmr.base: https://dl.fbaipublicfiles.com/fairseq/models/xlmr.base.tar.gz
 * Train the K-means
 ```  
 python scripts/cpc/criterion/clustering/clustering_script.py \
---config cluster_config.yaml
+--config scripts/cpc/criterion/clustering/cluster_config.yaml
 ```
 * Quantize audio
 ```
