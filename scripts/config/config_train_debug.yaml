@@ -1,0 +1,24 @@
+runner:
+  debug: True
+  cp_path: "/work/b08202033/multilingual_zero_resource_challenge/xlsr2_960m_1000k.pt"
+  resume: False
+  strict: True
+  cpu: False
+  pathClusteringCheckpoint: '/work/b08202033/zerospeech2021_baseline/checkpoints/masked_mono_kmeans_100cluster_25hr_per_lang/kmeans_30iter.pt'
+
+data:
+  file_extension: ['flac', 'wav']
+  pathSeq: null
+  split: null
+  max_size_seq: 10240
+  batch_size: 8
+  pathDB: [ "/work/b08202033/multilingual_zero_resource_challenge/datasets/cs_mono/wav/es_en/train/correct"]
+  #pathDB: [ "/work/gerber68/Data/cs/wav/es_en/train/correct"]
+  #          "/work/gerber68/Data/cs/wav/fr_en/train/correct",
+  #          "/work/gerber68/Data/cs/wav/zh_en/train/correct",
+  #          "/work/gerber68/Data/mono/mls_french/", 
+  #          "/work/gerber68/Data/mono/mls_spanish/", 
+  #          "/work/gerber68/Data/mono/train/", 
+  #          "/work/gerber68/Data/mono/train-clean-100"
+  #        ]
+  
