@@ -1,5 +1,5 @@
 runner:
-  debug: True
+  debug: False
   cp_path: "/work/b08202033/multilingual_zero_resource_challenge/xlsr2_960m_1000k.pt"
   resume: False
   strict: True
