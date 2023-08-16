@@ -2,7 +2,6 @@ import argparse
 import os
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--file_name')
 parser.add_argument('--output_dir')
 parser.add_argument('--convert', action='store_true')
 parser.add_argument('--max_units', type=int, default=512)
@@ -53,8 +52,13 @@ def write_output(names, lines, output, convert):
                 f.write(' '.join(line) + '\n')
 
 if __name__ == '__main__':
-    names, lines, deleted_names, deleted = preprocess(args.file_name, args.convert)
-    dedup_path = os.path.join(args.output_dir, 'dedup.txt')
+    file_name = os.path.join(args.output_dir, 'quantized_outputs.txt')
+    names, lines, deleted_names, deleted = preprocess(file_name, args.convert)
+    if args.convert:
+        dedup_path = os.path.join(args.output_dir, 'dedup_converted.txt')
+    else:
+        dedup_path = os.path.join(args.output_dir, 'dedup_not_converted.txt')
+        
     deleted_path = os.path.join(args.output_dir, 'deleted.txt')
     write_output(names, lines, dedup_path, args.convert)
     write_output(deleted_names, deleted, deleted_path, False)
