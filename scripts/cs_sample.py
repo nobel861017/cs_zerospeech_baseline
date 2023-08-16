@@ -20,7 +20,7 @@ if __name__ == "__main__":
     output_dir = config["output"]
 
     total_seconds_list = [h*3600 for h in hr_list]
-    
+
     if not os.path.isdir(output_dir):
         os.mkdir(output_dir)
 

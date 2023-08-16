@@ -11,7 +11,7 @@ if __name__ == "__main__":
     parser.add_argument("--config", type=str, default="config/data_config.yaml", help="data configuration")
     args = parser.parse_args()
     with open(args.config, "r") as fp:
-        config = yaml.load(fp)
+        config = yaml.load(fp, Loader=yaml.FullLoader)
     
     config = config["mono"]
     mono_data_root = config["data_root"]
@@ -53,7 +53,7 @@ if __name__ == "__main__":
                 output_path = os.path.join(output_dir, lang)
                 if not os.path.exists(output_path):
                     Path(output_path).mkdir(parents=True, exist_ok=True)
-                sf.write(os.path.join(output_path, os.path.basename(p)), wav, sr)
+                sf.write(os.path.join(output_path, os.path.splitext(os.path.basename(p))[0] + '.wav'), wav, sr)
             if len_count >= total_seconds:
                 break
             key_idx = (key_idx + 1) % len(keys)
