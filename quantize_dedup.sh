@@ -31,7 +31,7 @@ fairseq-preprocess --only-source \
     --trainpref $train_output_dir/dedup_converted.txt \
     --validpref $dev_output_dir/dedup_converted.txt \
     --testpref $test_output_correct_dir/dedup_converted.txt \
-    --destdir $exp_name \
+    --destdir $exp_name/bin \
     --workers $num_workers
 
 
