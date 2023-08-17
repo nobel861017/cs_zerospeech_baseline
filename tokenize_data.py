@@ -29,6 +29,7 @@ tokenized_sentences = []
 cp_path = args.model
 model = XLMRModel.from_pretrained(cp_path)
 for _, s in enumerate(tqdm(sentences)):
+    s = s.lower()
     #bpe_sentence = '<s> ' + model.bpe.encode(s) + ' </s>'
     bpe_sentence = model.bpe.encode(s)
     sentence_tokens = model.task.source_dictionary.encode_line(bpe_sentence, append_eos=False, add_if_not_exist=False)
