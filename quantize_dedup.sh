@@ -5,6 +5,9 @@ num_workers=2
 config_path=scripts/config/config_train.yaml
 train_output_dir=$exp_name/train
 
+config_path=scripts/config/config_train.yaml
+train_output_dir=$exp_name/train
+
 python scripts/quantize_audio.py $train_output_dir --config $config_path
 python scripts/deduplicate.py --output $train_output_dir --max_units 512 --convert
 
