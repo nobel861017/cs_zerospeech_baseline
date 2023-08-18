@@ -63,3 +63,6 @@ if __name__ == '__main__':
     write_output(names, lines, dedup_path, args.convert)
     write_output(deleted_names, deleted, deleted_path, False)
     
+    print('-'*100)
+    print('Finished deduplication.')
+    print('-'*100)
