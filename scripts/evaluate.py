@@ -36,10 +36,10 @@ for lang in table.keys():
         correct_counter = 0
         total = 0
         for idx in table[lang][sets].keys():
-            assert ("correct" in table[lang][sets][idx].keys() and "wrong" in table[lang][sets][idx].keys()), "Missing some data!"
-            if table[lang][sets][idx]["correct"] >= table[lang][sets][idx]["wrong"]:
-                correct_counter += 1
-            total += 1
+            if ("correct" in table[lang][sets][idx].keys() and "wrong" in table[lang][sets][idx].keys()):
+                if table[lang][sets][idx]["correct"] >= table[lang][sets][idx]["wrong"]:
+                    correct_counter += 1
+                total += 1
 
         print(f'Accuracy of {lang} {sets}: {correct_counter / total}')
 

@@ -86,7 +86,7 @@ def loadRobertaCheckpoint(pathBERTCheckpoint, pathData, from_pretrained=False):
         models, _model_args = checkpoint_utils.load_model_ensemble([model_args.path], task=task)
         model = models[0]
 
-        _model_args['bpe']['sentencepiece_model'] = '/work/b08202033/Code-Switched/xlmr.base/sentencepiece.bpe.model'
+        #_model_args['bpe']['sentencepiece_model'] = '/work/b08202033/multilingual_zero_resource_challenge/xlmr.base/sentencepiece.bpe.model'
         # Wrap-up to RobertaHubInterface (to be consistent with RobertaModel.from_pretrained)
         roberta = RobertaHubInterface(_model_args, task, model)
     
