@@ -199,7 +199,8 @@ def compute_proba_BERT_mlm_span(
             if exists(save_to):
                 with open(save_to, 'r') as f:
                     lines = [line for line in f]
-                if len(lines) > 0 and not lines[-1].endswith("\n"):
+                #if len(lines) > 0 and not lines[-1].endswith("\n"):
+                if len(lines) > 0 and lines[-1].endswith("\n"):
                     addEndLine = True
 
         print("")
@@ -226,11 +227,12 @@ def compute_proba_BERT_mlm_span(
                         outLines.append(" ".join([fname, str(score)]))
                     outLines = "\n".join(outLines)
                     with open(save_to, 'a') as f:
-                        if addEndLine:
-                            f.write("\n"+outLines)
-                        else:
-                            f.write(outLines)
-                            addEndLine = True
+                        #if addEndLine:
+                        #    f.write(outLines)
+                        #else:
+                        #    f.write(outLines+'\n')
+                        #    addEndLine = True
+                        f.write(outLines + '\n')
 
                 if print_shape_statistics:
                     print("Batch {:d}/{:d}. Input shapes: {} Done in {:4f} s.\t\t\t".format(
@@ -253,12 +255,13 @@ def compute_proba_BERT_mlm_span(
                     outLines.append(" ".join([str(score)]))
                 outLines = "\n".join(outLines)
                 with open(save_to, 'a') as f:
-                    if addEndLine:
-                        f.write("\n"+outLines)
-                    else:
-                        f.write(outLines)
-                        addEndLine = True
-
+                    #if addEndLine:
+                    #    f.write(outLines + '\n')
+                    #else:
+                    #    f.write(outLines+'\n')
+                    #    addEndLine = True
+                    #print(outLines)
+                    f.write(outLines + '\n')
             print("Done all in {:4f} s.".format(time() - start_time))
 
         # Release all GPU memory
@@ -649,7 +652,8 @@ def compute_proba_LSTM(
             if exists(save_to):
                 with open(save_to, 'r') as f:
                     lines = [line for line in f]
-                if len(lines) > 0 and not lines[-1].endswith("\n"):
+                #if len(lines) > 0 and not lines[-1].endswith("\n"):
+                if len(lines) > 0 and lines[-1].endswith("\n"):
                     addEndLine = True
         
         print("Number of sequences: {}".format(len(sequences)))
@@ -672,10 +676,11 @@ def compute_proba_LSTM(
                     outLines = "\n".join(outLines)
                     with open(save_to, 'a') as f:
                         if addEndLine:
-                            f.write("\n"+outLines)
-                        else:
                             f.write(outLines)
+                        else:
+                            f.write(outLines+'\n')
                             addEndLine = True
+                        
 
                 logproba_all.extend(logproba_batch)
                 print("Batch {:d}/{:d}. Done in {:4f} s.\t\t\t".format(
@@ -693,10 +698,16 @@ def compute_proba_LSTM(
                     outLines.append(" ".join([str(score)]))
                 outLines = "\n".join(outLines)
                 with open(save_to, 'a') as f:
+                    #if addEndLine:
+                    #    f.write("\n"+outLines)
+                    #else:
+                    #    f.write(outLines)
+                    #    addEndLine = True
+                    #f.write(outLines + '\n')
                     if addEndLine:
-                        f.write("\n"+outLines)
-                    else:
                         f.write(outLines)
+                    else:
+                        f.write(outLines+'\n')
                         addEndLine = True
 
             print("Done all in {:4f} s.".format(time() - start_time))
