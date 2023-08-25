@@ -10,10 +10,11 @@ import sys
 import os
 import json
 from random import shuffle
-from clustering import kMeanCluster, kMeanGPU_fairseq
+from clustering import kMeanCluster, kMeanGPU_fairseq, kMeanGPU_S3PRL
 from pathlib import Path
 import fairseq
 import yaml
+import s3prl.hub as hub
 
 def getQuantile(sortedData, percent):
     return sortedData[int(percent * len(sortedData))]
@@ -25,6 +26,7 @@ def parseArgs(argv):
     #parser.add_argument('pathOutput', type=str,
     #                    help="Path to the output clustering checkpoint.")
     parser.add_argument('--config', type=str, default='cluster_config.yaml', help='The path to the config file.')
+    
     #parser.add_argument(
     #    '--pathDB', nargs="*", type=str,
     #    default=["/work/b08202033/sWUGGY/datasets/LibriSpeech/train-clean-100/"])
@@ -91,10 +93,14 @@ if __name__ == "__main__":
     with open(args.config, 'r') as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
         print(config)
+    
+    assert (config['runner']['cp_path'] is None and config['runner']['s3prl'] is not None) \
+            or (config['runner']['cp_path'] is not None and config['runner']['s3prl'] is None), \
+            "Don't use fairseq model and s3prl model at once."
     # Export absolute paths for later use
     #args.pathOutput = os.path.abspath(args.pathOutput)
     pathOutput = os.path.abspath(config['runner']['pathOutput'])
-   
+    
     #assert False==True
     pathDB = config['data']['pathDB']
     for i in range(len(pathDB)):
@@ -163,11 +169,28 @@ if __name__ == "__main__":
     # featureMaker = FeatureModule(model, args.encoder_layer)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # featureMaker = getattr(hub, args.model_type)().to(device).eval()
-    cp_path = config['runner']['cp_path']
-    model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([cp_path])
-    #featureMaker = torch.nn.DataParallel(model[0]).to(device)
-    featureMaker = model[0].to(device)
-    print("Feature maker loaded!")
+    
+    model_name = None
+    flag = None
+    if config['runner']['cp_path'] is not None:
+        cp_path = config['runner']['cp_path']
+        flag = 'fairseq'
+        model_name = cp_path
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([cp_path])
+        #featureMaker = torch.nn.DataParallel(model[0]).to(device)
+        featureMaker = model[0].to(device)
+
+    elif config['runner']['s3prl'] is not None:
+        flag = 's3prl'
+        model_name = config['runner']['s3prl']
+        featureMaker = getattr(hub, config['runner']['s3prl'])().to(device)
+    
+    else:
+        print("Please specify the speech encoder in the config file.")
+        raise
+    
+    featureMaker.eval()
+    print(f"Feature maker {model_name} loaded!")
     print("")
 
     
@@ -189,15 +212,32 @@ if __name__ == "__main__":
     print("Starting the clustering...")
     start_time = time.time()
 
-    clusters = kMeanGPU_fairseq(trainLoader, featureMaker.eval(), config['runner']['nClusters'], config['runner']['nGroups'],
-                            perIterSize=config['runner']['perIterSize'],
-                            MAX_ITER=config['runner']['MAX_ITER'],
-                            save=config['runner']['save'], load=load, 
-                            save_dir=os.path.dirname(pathOutput),
-                            save_last=config['runner']['save_last'],
-                            EPSILON=config['runner']['epsilon'],
-                            device_ids=device_ids
-                            ).cpu()
+    assert flag in ['fairseq', 's3prl'], "Currently only supported speech encoder from s3prl and fairseq."
+    
+    if flag == 'fairseq':
+        clusters = kMeanGPU_fairseq(trainLoader, featureMaker.eval(), config['runner']['nClusters'], config['runner']['nGroups'],
+                                perIterSize=config['runner']['perIterSize'],
+                                MAX_ITER=config['runner']['MAX_ITER'],
+                                save=config['runner']['save'], load=load, 
+                                save_dir=os.path.dirname(pathOutput),
+                                save_last=config['runner']['save_last'],
+                                EPSILON=config['runner']['epsilon'],
+                                device_ids=device_ids,
+                                layer=config['runner']['layer']
+                                ).cpu()
+    
+    elif flag == 's3prl':
+        clusters = kMeanGPU_S3PRL(trainLoader, featureMaker.eval(), config['runner']['nClusters'], config['runner']['nGroups'],
+                                perIterSize=config['runner']['perIterSize'],
+                                MAX_ITER=config['runner']['MAX_ITER'],
+                                save=config['runner']['save'], load=load, 
+                                save_dir=os.path.dirname(pathOutput),
+                                save_last=config['runner']['save_last'],
+                                EPSILON=config['runner']['epsilon'],
+                                layer=config['runner']['layer']
+                                ).cpu()
+    
+
 
     print(f'Ran clustering '
           f'in {time.time() - start_time:.2f} seconds')

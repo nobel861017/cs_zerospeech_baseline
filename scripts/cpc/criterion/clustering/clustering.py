@@ -49,7 +49,7 @@ def kMeanGPU(dataLoader, featureMaker, k, n_group=1,
              MAX_ITER=100, EPSILON=1e-4,
              perIterSize=-1, start_clusters=None,
              save=False, load=False, save_dir=None,
-             save_last=5):
+             save_last=5, layer=-1):
 
     print(f"Start Kmean clustering with {k} clusters and {n_group} groups...")
 
@@ -159,7 +159,7 @@ def kMeanGPU_S3PRL(dataLoader, featureMaker, k, n_group=1,
              MAX_ITER=100, EPSILON=1e-4,
              perIterSize=-1, start_clusters=None,
              save=False, load=False, save_dir=None,
-             save_last=5):
+             save_last=5, layer=-1):
 
     print(f"Start Kmean clustering with {k} clusters and {n_group} groups...")
 
@@ -185,7 +185,7 @@ def kMeanGPU_S3PRL(dataLoader, featureMaker, k, n_group=1,
                     for idx in range(exact_data.shape[0]):
                         wavs = exact_data[idx]
                         s3prl_data.append(wavs.squeeze().float().to(device))
-                    cFeature = featureMaker(s3prl_data)['hidden_states'][-1]  # (batch size, max length of the encoded seq, 768) 
+                    cFeature = featureMaker(s3prl_data)['hidden_states'][layer]  # (batch size, max length of the encoded seq, 768) 
                     cFeature = cFeature.contiguous().view(-1, cFeature.size(2)//n_group)
                     Ck.append(cFeature)
                     if index > k:
@@ -225,7 +225,7 @@ def kMeanGPU_S3PRL(dataLoader, featureMaker, k, n_group=1,
                 for idx in range(exact_data.shape[0]):
                     wavs = exact_data[idx]
                     s3prl_data.append(wavs.squeeze().float().to(device))
-                cFeature = featureMaker(s3prl_data)['hidden_states'][-1]  # (batch size, max length of the encoded seq, 768) 
+                cFeature = featureMaker(s3prl_data)['hidden_states'][layer]  # (batch size, max length of the encoded seq, 768) 
                 cFeature = cFeature.contiguous().view(-1, 1, D)
                 locC, locN = clusterStep(cFeature)
                 Ck1 += locC.sum(dim=0, keepdim=True)
@@ -286,7 +286,7 @@ def kMeanGPU_fairseq(dataLoader, featureMaker, k, n_group=1,
              MAX_ITER=100, EPSILON=1e-4,
              perIterSize=-1, start_clusters=None,
              save=False, load=False, save_dir=None,
-             save_last=5, device_ids=[0,1,2,3]):
+             save_last=5, device_ids=[0,1,2,3], layer=-1):
 
     print(f"Start Kmean clustering with {k} clusters and {n_group} groups...")
 
@@ -308,16 +308,11 @@ def kMeanGPU_fairseq(dataLoader, featureMaker, k, n_group=1,
                 for index, data in enumerate(dataLoader): # (batch size, 1, seqlen)
                     #print(index)
                     exact_data, _ = data
-                    #print("exact data: ", exact_data)
-                    #print(len(data), type(data), type(data[0]), data[0].shape, type(data[1]), data[1].shape)
-                    #return
-                    #s3prl_data = []
-                    #for idx in range(exact_data.shape[0]):
-                    #    wavs = exact_data[idx]
-                    #    s3prl_data.append(wavs.squeeze().float().to(device))
-                    #cFeature = featureMaker(s3prl_data)['hidden_states'][-1]  # (batch size, max length of the encoded seq, 768) 
                     exact_data = torch.squeeze(exact_data, 1).to(device) # B x Seqlen?
-                    cFeature = featureMaker(exact_data, features_only=True, mask=False)['x']
+                    if layer != -1:
+                        cFeature = featureMaker(exact_data, features_only=True, mask=False, layer=layer)['x']
+                    else:
+                        cFeature = featureMaker(exact_data, features_only=True, mask=False)['x']
                     cFeature = cFeature.contiguous().view(-1, cFeature.size(2)//n_group)
                     Ck.append(cFeature)
                     if index > k:
@@ -363,7 +358,10 @@ def kMeanGPU_fairseq(dataLoader, featureMaker, k, n_group=1,
                     #    s3prl_data.append(wavs.squeeze().float().to(device))
                     #cFeature = featureMaker(s3prl_data)['hidden_states'][-1]  # (batch size, max length of the encoded seq, 768) 
                 exact_data = torch.squeeze(exact_data, 1).to(device) # B x Seqlen?
-                cFeature = featureMaker(exact_data, features_only=True, mask=False)['x']
+                if layer != -1:
+                    cFeature = featureMaker(exact_data, features_only=True, mask=False, layer=layer)['x']
+                else:
+                    cFeature = featureMaker(exact_data, features_only=True, mask=False)['x']
                 #cFeature = output['x'].contiguous().view(-1, cFeature.size(2)//n_group)
                 cFeature = cFeature.contiguous().view(-1, 1, D)
                 locC, locN = clusterStep(cFeature)
