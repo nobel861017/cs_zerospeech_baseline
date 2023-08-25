@@ -12,8 +12,9 @@ from random import shuffle
 from time import time
 import torch
 from dataset import findAllSeqs_Mix
-from feature_loader import buildXlsrFeature
+from feature_loader import buildXlsrFeature, buildS3PRLFeature
 from cpc.criterion.clustering.clustering import kMeanCluster
+import s3prl.hub as hub
 
 def readArgs(pathArgs):
     print(f"Loading args from {pathArgs}")
@@ -115,6 +116,10 @@ def main(argv):
     print("=============================================================")
     print(f"Quantizing data from {config['data']['pathDB']}")
     print("=============================================================")
+
+    assert (config['runner']['cp_path'] is None and config['runner']['s3prl'] is not None) \
+            or (config['runner']['cp_path'] is not None and config['runner']['s3prl'] is None), \
+            "Don't use fairseq model and s3prl model at once."
 
     # Get splits
     if config['data']['split']:
@@ -239,7 +244,7 @@ def main(argv):
     print("")
     print("Cluster args:", cluster_config)
     print("-"*50)
-
+    
     # Load CluterModule
     print("")
     print(f"Loading ClusterModule at {pathClusteringCheckpoint}")
@@ -248,21 +253,40 @@ def main(argv):
         clusterModule.cuda()
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([config['runner']['cp_path']])
-    featureMaker = model[0].eval().to(device)
+    model_name = None
+    flag = None
+    if config['runner']['cp_path'] is not None:
+        cp_path = config['runner']['cp_path']
+        flag = 'fairseq'
+        model_name = cp_path
+        model, cfg, task = fairseq.checkpoint_utils.load_model_ensemble_and_task([cp_path])
+        #featureMaker = torch.nn.DataParallel(model[0]).to(device)
+        featureMaker = model[0].to(device)
+
+    elif config['runner']['s3prl'] is not None:
+        flag = 's3prl'
+        model_name = config['runner']['s3prl']
+        featureMaker = getattr(hub, config['runner']['s3prl'])().to(device)
+    
+    else:
+        print("Please specify the speech encoder in the config file.")
+        raise
 
 
-    print(f'Successfully loaded {config["runner"]["cp_path"]} on {device}!')
+    print(f'Successfully loaded {model_name} on {device}!')
     #if clustering_args.dimReduction is not None:
         #dimRed = loadDimReduction(clustering_args.dimReduction, clustering_args.centroidLimits)
         #featureMaker = torch.nn.Sequential(featureMaker, dimRed)
     #if not clustering_args.train_mode:
         #featureMaker.eval()
     #if not args.cpu:
-        #featureMaker.cuda()
+    #    featureMaker.cuda()
 
     def xlsr_feature_function(x):
-            return buildXlsrFeature(featureMaker.eval(), x, seqNorm=False, strict=config['runner']['strict'])
+            return buildXlsrFeature(featureMaker.eval(), x, seqNorm=False, strict=config['runner']['strict'], layer=config['runner']['layer'])
+    
+    def s3prl_feature_function(x):
+            return buildS3PRLFeature(featureMaker.eval(), x, seqNorm=False, strict=config['runner']['strict'], layer=config['runner']['layer'])
 
     # Quantization of files
     print("")
@@ -278,7 +302,10 @@ def main(argv):
         #file_path = os.path.join(args.pathDB, file_path)
         file_path = Path(file_path)
         # Quantizing
-        quantLine = quantize_file(file_path, xlsr_feature_function, clusterModule)
+        if flag == 'fairseq':
+            quantLine = quantize_file(file_path, xlsr_feature_function, clusterModule)
+        elif flag == 's3prl':
+            quantLine = quantize_file(file_path, s3prl_feature_function, clusterModule)
         #print(quantLine)
         # Save the outputs
         file_name = str(file_path)

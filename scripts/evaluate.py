@@ -26,7 +26,7 @@ with open(args.input, 'r') as f:
         sets_dir = os.path.dirname(os.path.dirname(filename))
         lang = os.path.basename(os.path.dirname(sets_dir))
         correct_or_wrong = os.path.basename(os.path.dirname(filename))
-
+        # print(correct_or_wrong)
         if lang not in table.keys():
             table[lang] = dict()
         if sets not in table[lang].keys():

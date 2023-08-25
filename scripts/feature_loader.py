@@ -269,7 +269,7 @@ def buildFeature(featureMaker, seqPath, strict=False,
     return out
 
 def buildS3PRLFeature(featureMaker, seqPath, strict=False,
-                 maxSizeSeq=64000, seqNorm=False):
+                 maxSizeSeq=64000, seqNorm=False, layer=-1):
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     featureMaker.eval()
@@ -306,7 +306,7 @@ def buildS3PRLFeature(featureMaker, seqPath, strict=False,
         #print(type(subseq), len(subseq), subseq[0].shape)
         with torch.no_grad():
             if start<end:
-                features = featureMaker(subseq)["hidden_states"][-1] # [1, a, 768]
+                features = featureMaker(subseq)["hidden_states"][layer] # [1, a, 768]
                 if seqNorm:
                     features = seqNormalization(features)
                 out.append(features.squeeze(0).detach().cpu())
@@ -316,7 +316,7 @@ def buildS3PRLFeature(featureMaker, seqPath, strict=False,
         #subseq = (seq[:, -maxSizeSeq:]).view(1, 1, -1).cuda(device=0)
         subseq = [seq[0][-maxSizeSeq:]]
         with torch.no_grad():
-                features = featureMaker(subseq)["hidden_states"][-1]
+                features = featureMaker(subseq)["hidden_states"][layer]
                 if seqNorm:
                     features = seqNormalization(features)
         delta = (sizeSeq - start)*1000 // (sample_rate*20)
@@ -455,7 +455,7 @@ def buildFeature_S3PRL_batch(featureMaker, seqPath, strict=False,
     return out
 '''
 def buildXlsrFeature(featureMaker, seqPath, strict=False,
-                 maxSizeSeq=64000, seqNorm=False):
+                 maxSizeSeq=64000, seqNorm=False, layer=-1):
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     featureMaker.eval().to(device)
@@ -495,7 +495,10 @@ def buildXlsrFeature(featureMaker, seqPath, strict=False,
         #print(type(subseq), len(subseq), subseq[0].shape)
         with torch.no_grad():
             if start<end:
-                features = featureMaker(subseq, features_only=True, mask=False)["x"]
+                if layer != -1:
+                    features = featureMaker(subseq, features_only=True, mask=False, layer=layer)["x"]
+                else:
+                    features = featureMaker(subseq, features_only=True, mask=False)["x"]
                 #print(features.shape)
                 if seqNorm:
                     features = seqNormalization(features)
@@ -507,7 +510,10 @@ def buildXlsrFeature(featureMaker, seqPath, strict=False,
         #subseq = seq[0][-maxSizeSeq:]
         subseq = seq.squeeze()[-maxSizeSeq:].unsqueeze(0).to(device)
         with torch.no_grad():
-                features = featureMaker(subseq, features_only=True, mask=False)["x"]
+                if layer != -1:
+                    features = featureMaker(subseq, features_only=True, mask=False, layer=layer)["x"]
+                else:
+                    features = featureMaker(subseq, features_only=True, mask=False)["x"]
                 if seqNorm:
                     features = seqNormalization(features)
         delta = (sizeSeq - start)*1000 // (sample_rate*20)
