@@ -1,5 +1,5 @@
 runner:
-  pathOutput: "/work/b08202033/zerospeech2021_baseline/checkpoints/code_switch_kmeans_100cluster/kmeans_30iter.pt"
+  pathOutput: "/work/b08202033/zerospeech2021_baseline/checkpoints/debug/kmeans_30iter.pt"
   nClusters: 100
   nGroups: 1
   debug: False
@@ -12,12 +12,14 @@ runner:
   dimReduction: null
   centroidLimits: null
   getDistanceEstimation: False
-  MAX_ITER: 30
+  MAX_ITER: 5
   save: True
   load: True
   save_last: 5
-  cp_path: "/work/b08202033/multilingual_zero_resource_challenge/xlsr2_960m_1000k.pt"
+  cp_path: null
   epsilon: 0.0001
+  s3prl: hubert
+  layer: -1 # -1 for last layer
 
 
 data:
@@ -25,7 +27,13 @@ data:
   extension: ['.flac', '.wav']
   seqList: null
   sizeWindow: 10240
-  batchSizeGPU: 100
-  pathDB: ["/work/b08202033/multilingual_zero_resource_challenge/datasets/cs_mono/wav/en_zh/train/correct", "/work/b08202033/multilingual_zero_resource_challenge/datasets/cs_mono/wav/es_en/train/correct", 
-            "/work/b08202033/multilingual_zero_resource_challenge/datasets/cs_mono/wav/fr_en/train/correct", "/work/b08202033/multilingual_zero_resource_challenge/datasets/cs_mono/wav/zh_en/train/correct"]
+  batchSizeGPU: 80
+  pathDB: [ "/work/b08202033/zerospeech2021_baseline/datasets/cs_mono_mix/50_total_16k/wav/es_en/train/correct",
+            "/work/b08202033/zerospeech2021_baseline/datasets/cs_mono_mix/50_total_16k/wav/fr_en/train/correct",
+            "/work/b08202033/zerospeech2021_baseline/datasets/cs_mono_mix/50_total_16k/wav/zh_en/train/correct",
+            "/work/b08202033/zerospeech2021_baseline/datasets/cs_mono_mix/50_total/mls_french", 
+            "/work/b08202033/zerospeech2021_baseline/datasets/cs_mono_mix/50_total/mls_spanish", 
+            "/work/b08202033/zerospeech2021_baseline/datasets/cs_mono_mix/50_total/train", 
+            "/work/b08202033/zerospeech2021_baseline/datasets/cs_mono_mix/50_total/train-clean-100"
+          ]
   
