@@ -6,7 +6,7 @@ cs:
 
 mono:
   data_root: "/work/gerber68/Data/mono/"
-  lang: ["mls_spanish", "mls_freanch", "train", "train-clean-100"]
+  lang: ["mls_spanish", "mls_french", "train", "train-clean-100"]
   ext: ["flac", "flac", "wav", "flac"] 
   hr: [25, 25, 25, 25]
   output: "/work/gerber68/Data/mono_sampled/25hr/"
