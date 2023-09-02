@@ -9,6 +9,7 @@ import json
 import argparse
 # from cpc_default_config import get_default_cpc_config
 from dataset import parseSeqLabels
+import whisper
 #from model import CPCModel, ConcatenatedModel
 
 
@@ -281,29 +282,16 @@ def buildS3PRLFeature(featureMaker, seqPath, strict=False,
     #print("seq:", seq[0].shape, sizeSeq)
     start = 0
     out = []
-    '''
-    # This can work, and have no subseq
-    features = featureMaker(seq)["hidden_states"][-1]
-    if seqNorm:
-        features = seqNormalization(features)
-    print(type(features), features.shape)
-    out.append(features.squeeze(0).detach().cpu())
-    '''
 
     while start < sizeSeq:
         if strict and start + maxSizeSeq > sizeSeq:
             break
         end = min(sizeSeq, start + maxSizeSeq)
-        #subseq = (seq[:, start:end]).view(1, 1, -1).cuda(device=0)
-        #print("S/E:", start, end)
+
         if len(seq)!=1:
             raise ValueError
         subseq = [seq[0][start:end]]
-        #print("S/E: ", start, end)
-        #print(subseq)
-        #print(subseq[0].shape)
-        #print("subseq:", subseq[0].shape)
-        #print(type(subseq), len(subseq), subseq[0].shape)
+
         with torch.no_grad():
             if start<end:
                 features = featureMaker(subseq)["hidden_states"][layer] # [1, a, 768]
@@ -390,70 +378,7 @@ def buildFeature_batch(featureMaker, seqPath, strict=False,
             
     out = torch.cat(out, dim=1)
     return out
-'''
-def buildFeature_S3PRL_batch(featureMaker, seqPath, strict=False,
-                 maxSizeSeq=8000, seqNorm=False, batch_size=8):
-    r"""
-    Apply the featureMaker to the given file. Apply batch-computation
-    Arguments:
-        - featureMaker (FeatureModule): model to apply
-        - seqPath (string): path of the sequence to load
-        - strict (bool): if True, always work with chunks of the size
-                         maxSizeSeq
-        - maxSizeSeq (int): maximal size of a chunk
-        - seqNorm (bool): if True, normalize the output along the time
-                          dimension to get chunks of mean zero and var 1
-    Return:
-        a torch vector of size 1 x Seq_size x Feature_dim
-    """
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    featureMaker.eval()
-    seq, sample_rate = torchaudio.load(seqPath)
-    sizeSeq = seq.shape[1]
-    
-    # Compute number of batches
-    n_chunks = sizeSeq//maxSizeSeq
-    n_batches = n_chunks//batch_size
-    if n_chunks % batch_size != 0:
-        n_batches += 1
-    
-    out = []
-    # Treat each batch
-    for batch_idx in range(n_batches):
-        start =  batch_idx*batch_size*maxSizeSeq
-        end = min((batch_idx+1)*batch_size*maxSizeSeq, maxSizeSeq*n_chunks)
-        batch_seqs = (seq[:, start:end]).view(-1, 1, maxSizeSeq).to(device)
-        with torch.no_grad():
-            # breakpoint()
-            batch_out = featureMaker((batch_seqs, None))
-            for features in batch_out:
-                features = features.unsqueeze(0)
-                if seqNorm:
-                    features = seqNormalization(features)
-                out.append(features.detach().cpu())
-        
-    # Remaining frames
-    if sizeSeq % maxSizeSeq >= featureMaker.getDownsamplingFactor():
-        remainders = sizeSeq % maxSizeSeq
-        if strict:
-            subseq = (seq[:, -maxSizeSeq:]).view(1, 1, -1).to(device)
-            with torch.no_grad():
-                features = featureMaker((subseq, None))
-                if seqNorm:
-                    features = seqNormalization(features)
-            delta = remainders // featureMaker.getDownsamplingFactor()
-            out.append(features[:, -delta:].detach().cpu())
-        else:
-            subseq = (seq[:, -remainders:]).view(1, 1, -1).to(device)
-            with torch.no_grad():
-                features = featureMaker((subseq, None))
-                if seqNorm:
-                    features = seqNormalization(features)
-            out.append(features.detach().cpu())
-            
-    out = torch.cat(out, dim=1)
-    return out
-'''
+
 def buildXlsrFeature(featureMaker, seqPath, strict=False,
                  maxSizeSeq=64000, seqNorm=False, layer=-1):
 
@@ -468,31 +393,16 @@ def buildXlsrFeature(featureMaker, seqPath, strict=False,
     #print("seq:", seq[0].shape, sizeSeq)
     start = 0
     out = []
-    '''
-    # This can work, and have no subseq
-    features = featureMaker(seq)["hidden_states"][-1]
-    if seqNorm:
-        features = seqNormalization(features)
-    print(type(features), features.shape)
-    out.append(features.squeeze(0).detach().cpu())
-    '''
 
     while start < sizeSeq:
         if strict and start + maxSizeSeq > sizeSeq:
             break
         end = min(sizeSeq, start + maxSizeSeq)
-        #subseq = (seq[:, start:end]).view(1, 1, -1).cuda(device=0)
-        #print("S/E:", start, end)
+
         if len(seq)!=1:
             raise ValueError
-        #print(start, end)
+
         subseq = seq.squeeze()[start:end].unsqueeze(0).to(device)
-        #print("subseq: ", subseq.shape)
-        #print("S/E: ", start, end)
-        #print(subseq)
-        #print(subseq[0].shape)
-        #print("subseq:", subseq[0].shape)
-        #print(type(subseq), len(subseq), subseq[0].shape)
         with torch.no_grad():
             if start<end:
                 if layer != -1:
@@ -523,3 +433,59 @@ def buildXlsrFeature(featureMaker, seqPath, strict=False,
     out = torch.cat(out, dim=0)
     return out
 
+def buildWhisperFeature(featureMaker, seqPath, strict=False,
+                 maxSizeSeq=64000, seqNorm=False, layer=-1):
+    
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    featureMaker.eval().to(device)
+    seq, sample_rate = torchaudio.load(seqPath) # (1, seq_length)
+    
+    sizeSeq = seq.shape[1]
+    start = 0
+    out = []
+
+    while start < sizeSeq:
+        if strict and start + maxSizeSeq > sizeSeq:
+            break
+        end = min(sizeSeq, start + maxSizeSeq)
+
+        if len(seq)!=1:
+            raise ValueError
+
+        subseq = seq.squeeze()[start:end].unsqueeze(0).to(device) # (1, subseq_len)
+        with torch.no_grad():
+            if start<end:
+                subseq_size = subseq.shape[1]
+                subseq = subseq.squeeze()
+                subseq = whisper.pad_or_trim(subseq)
+                mel = whisper.log_mel_spectrogram(subseq).unsqueeze(0).to(device)
+                features = featureMaker.embed_audio(mel) # (1, Frames, Dim)
+
+                feature_len = (subseq_size // sample_rate) * 50
+                features = features[:, :feature_len, :]
+                if seqNorm:
+                    features = seqNormalization(features)
+                out.append(features.squeeze(0).detach().cpu())
+        start += maxSizeSeq
+
+    if strict and start < sizeSeq:
+        #subseq = (seq[:, -maxSizeSeq:]).view(1, 1, -1).cuda(device=0)
+        #subseq = seq[0][-maxSizeSeq:]
+        subseq = seq.squeeze()[-maxSizeSeq:].unsqueeze(0).to(device)
+        with torch.no_grad():
+                subseq_size = subseq.shape[1]
+                subseq = subseq.squeeze()
+                subseq = whisper.pad_or_trim(subseq)
+                mel = whisper.log_mel_spectrogram(subseq).unsqueeze(0).to(device)
+                features = featureMaker.embed_audio(mel) # (1, Frames, Dim)
+                feature_len = (subseq_size // sample_rate) * 50
+                features = features[:, :feature_len, :]
+                
+                if seqNorm:
+                    features = seqNormalization(features)
+        delta = (sizeSeq - start)*1000 // (sample_rate*20)
+        #delta = sizeSeq - start
+        out.append(features[:, -delta:, :].squeeze(0).detach().cpu())
+
+    out = torch.cat(out, dim=0)
+    return out
