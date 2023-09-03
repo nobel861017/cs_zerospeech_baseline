@@ -12,9 +12,10 @@ from random import shuffle
 from time import time
 import torch
 from dataset import findAllSeqs_Mix
-from feature_loader import buildXlsrFeature, buildS3PRLFeature
+from feature_loader import buildXlsrFeature, buildS3PRLFeature, buildWhisperFeature
 from cpc.criterion.clustering.clustering import kMeanCluster
 import s3prl.hub as hub
+import whisper
 
 def readArgs(pathArgs):
     print(f"Loading args from {pathArgs}")
@@ -268,6 +269,10 @@ def main(argv):
         model_name = config['runner']['s3prl']
         featureMaker = getattr(hub, config['runner']['s3prl'])().to(device)
     
+    elif config['runner']['whisper'] is not None:
+        flag = 'whisper'
+        featureMaker = whisper.load_model(config['runner']['whisper']).to(device)
+    
     else:
         print("Please specify the speech encoder in the config file.")
         raise
@@ -288,6 +293,8 @@ def main(argv):
     def s3prl_feature_function(x):
             return buildS3PRLFeature(featureMaker.eval(), x, seqNorm=False, strict=config['runner']['strict'], layer=config['runner']['layer'])
 
+    def whisper_feature_function(x):
+            return buildWhisperFeature(featureMaker.eval(), x, seqNorm=False, strict=config['runner']['strict'], layer=config['runner']['layer'])
     # Quantization of files
     print("")
     print(f"Quantizing audio files and saving outputs to {outputFile}...")
@@ -306,6 +313,8 @@ def main(argv):
             quantLine = quantize_file(file_path, xlsr_feature_function, clusterModule)
         elif flag == 's3prl':
             quantLine = quantize_file(file_path, s3prl_feature_function, clusterModule)
+        elif flag == 'whisper':
+            quantLine = quantize_file(file_path, whisper_feature_function, clusterModule)
         #print(quantLine)
         # Save the outputs
         file_name = str(file_path)

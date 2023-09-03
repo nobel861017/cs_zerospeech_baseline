@@ -1,5 +1,5 @@
-exp_name=text-based-topline-from-scratch
-run_id=text-topline-default-config
+exp_name=text-based-cs-only-scratch-5kstep
+run_id=text-topline-cs
 config_dir=scripts/config/text
 config_name=only_cs
 data_dir=/work/b08202033/zerospeech2021_baseline/datasets/text_only_cs/bin

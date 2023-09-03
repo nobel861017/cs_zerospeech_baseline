@@ -10,7 +10,7 @@ import sys
 import os
 import json
 from random import shuffle
-from clustering import kMeanCluster, kMeanGPU_fairseq, kMeanGPU_S3PRL
+from clustering import kMeanCluster, kMeanGPU_fairseq, kMeanGPU_S3PRL, kMeanGPU_whisper
 from pathlib import Path
 import fairseq
 import yaml
@@ -185,6 +185,10 @@ if __name__ == "__main__":
         model_name = config['runner']['s3prl']
         featureMaker = getattr(hub, config['runner']['s3prl'])().to(device)
     
+    elif config['runner']['whisper'] is not None:
+        flag = 'whisper'
+        featureMaker = whisper.load_model(config['runner']['whisper']).to(device)
+
     else:
         print("Please specify the speech encoder in the config file.")
         raise
@@ -237,6 +241,16 @@ if __name__ == "__main__":
                                 layer=config['runner']['layer']
                                 ).cpu()
     
+    elif flag == 'whisper':
+        clusters = kMeanGPU_whisper(trainLoader, featureMaker.eval(), config['runner']['nClusters'], config['runner']['nGroups'],
+                                perIterSize=config['runner']['perIterSize'],
+                                MAX_ITER=config['runner']['MAX_ITER'],
+                                save=config['runner']['save'], load=load, 
+                                save_dir=os.path.dirname(pathOutput),
+                                save_last=config['runner']['save_last'],
+                                EPSILON=config['runner']['epsilon'],
+                                layer=config['runner']['layer']
+                                ).cpu()
 
 
     print(f'Ran clustering '

@@ -15,7 +15,7 @@ def preprocess(file_name, convert):
     deleted = []
     deleted_names = []
     for line in f.readlines():
-        wav_name, line = line.split('\t')
+        wav_name, line = line.split('\t')[0], line.split('\t')[1]
         line = line.strip('\n').split(',')
         new_line = []
         for id in line:

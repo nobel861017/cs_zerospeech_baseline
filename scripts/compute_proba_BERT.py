@@ -28,10 +28,10 @@ def parseArgs(argv):
     parser.add_argument('--no_overlap', action="store_true",
                         help='If specified, not overlap the masking spans when computing the'
                         'pseudo-probability (temporal_sliding_size is set to decoding_span_size)')
-    parser.add_argument('--batchsen_size', type=int, default=32,
+    parser.add_argument('--batchsen_size', type=int, default=128,
                         help='The number of sentences to be considered in each outer batch'
                         '(batch of sentences) (defaut: 32). Decrease this for longer sentences (BLIMP).')
-    parser.add_argument('--inner_batch_size', type=int, default=32,
+    parser.add_argument('--inner_batch_size', type=int, default=128,
                         help='For each sentence, the model has to compute the outputs of many different'
                         'masked sequences. This parameter controls the size of the inner batches for'
                         'each outer batch (defaut: 128). Decrease this for longer sentences (BLIMP).')
@@ -56,7 +56,7 @@ def main(argv):
     print("")
     print(f"Reading input file from {args.pathQuantizedUnits}")
     input_file_names = []
-    intput_file_seqs = []
+    input_file_seqs = []
     with open(args.pathQuantizedUnits, 'r') as f:
         for line in f:
             file_name, file_seq = line.strip().split("\t")
@@ -66,8 +66,8 @@ def main(argv):
             #print(file_name)
             # Add to lists
             input_file_names.append(file_name.replace(' ', ''))
-            intput_file_seqs.append(file_seq)
-    print(f"Found {len(input_file_names)} sequences!")
+            input_file_seqs.append(file_seq)
+    print(f"Found {len(input_file_seqs)} sequences!")
 
     # Check if directory exists
     pathOutputDir = dirname(args.pathOutputFile)
@@ -84,18 +84,19 @@ def main(argv):
             with open(args.pathOutputFile, 'r') as f:
                 lines = [line for line in f]
             for line in lines:
-                file_name, score = line.strip().split()
-                existing_file_names.append(file_name)
+                if line!='\n':
+                    file_name, score = line.strip().split()
+                    existing_file_names.append(file_name)
             assert input_file_names[:len(existing_file_names)] == existing_file_names, \
                 "The file names in the existing output file do not match the input file!!"
             input_file_names = input_file_names[len(existing_file_names):]
-            intput_file_seqs = intput_file_seqs[len(existing_file_names):]
-            print(f"Found existing output file, continue to compute scores of {len(intput_file_seqs)} sequences left!")
+            input_file_seqs = input_file_seqs[len(existing_file_names):]
+            print(f"Found existing output file, continue to compute scores of {len(input_file_seqs)} sequences left!")
     else:
         assert not exists(args.pathOutputFile), \
             f"Output file {args.pathOutputFile} already exists !!! If you want to continue computing scores, please check the --resume option."
 
-    assert len(intput_file_seqs) > 0, \
+    assert len(input_file_seqs) > 0, \
         "No file to compute probability!"
 
     # Load BERT model
@@ -119,7 +120,7 @@ def main(argv):
     print("")
     print(f"Computing log-probabilities and saving results to {args.pathOutputFile}...")
     _ = compute_proba_BERT_mlm_span(
-                            intput_file_seqs, roberta, tokenized=True,
+                            input_file_seqs, roberta, tokenized=True,
                             decoding_span_size=args.decoding_span_size, temporal_sliding_size = args.temporal_sliding_size,
                             span_overlap=not args.no_overlap,
                             batchsen_size=args.batchsen_size, inner_batch_size = args.inner_batch_size,

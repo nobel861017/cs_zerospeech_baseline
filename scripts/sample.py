@@ -13,6 +13,7 @@ if __name__ == "__main__":
     with open(args.config, "r") as fp:
         config = yaml.load(fp, Loader=yaml.FullLoader)
     
+    print(config)
     config = config["mono"]
     mono_data_root = config["data_root"]
     lang_list = config["lang"]

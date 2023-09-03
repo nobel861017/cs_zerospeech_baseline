@@ -4,7 +4,7 @@ runner:
   resume: False
   strict: True
   cpu: False
-  pathClusteringCheckpoint: '/work/b08202033/zerospeech2021_baseline/checkpoints/half_cs_half_mono_kmeans_100cluster/kmeans_30iter.pt'
+  pathClusteringCheckpoint: '/work/b08202033/zerospeech2021_baseline/checkpoints/half_cs_half_mono_kmeans_75cluster_30iter/kmeans_30iter.pt'
   s3prl: null
   layer: -1
 data:

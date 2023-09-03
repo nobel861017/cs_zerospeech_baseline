@@ -50,7 +50,7 @@ class AudioBatchData(Dataset):
         self.sizeWindow = sizeWindow
         #self.seqNames = [(s, self.dbPath / x) for s, x in seqNames]
         self.seqNames = [(s, Path(x)) for s, x in seqNames]
-        print(self.seqNames)
+        #print(self.seqNames)
         self.reload_pool = Pool(nProcessLoader)
 
         self.prepare()
