@@ -15,6 +15,7 @@ from pathlib import Path
 import fairseq
 import yaml
 import s3prl.hub as hub
+import whisper
 
 def getQuantile(sortedData, percent):
     return sortedData[int(percent * len(sortedData))]
@@ -94,9 +95,10 @@ if __name__ == "__main__":
         config = yaml.load(f, Loader=yaml.FullLoader)
         print(config)
     
-    assert (config['runner']['cp_path'] is None and config['runner']['s3prl'] is not None) \
-            or (config['runner']['cp_path'] is not None and config['runner']['s3prl'] is None), \
-            "Don't use fairseq model and s3prl model at once."
+    assert (config['runner']['cp_path'] is None and config['runner']['s3prl'] is not None and config['runner']['whisper'] is None) \
+            or (config['runner']['cp_path'] is not None and config['runner']['s3prl'] is None and config['runner']['whisper'] is None) \
+            or (config['runner']['cp_path'] is None and config['runner']['s3prl'] is None and config['runner']['whisper'] is not None), \
+            "Don't use fairseq model, s3prl model or whisper at once."
     # Export absolute paths for later use
     #args.pathOutput = os.path.abspath(args.pathOutput)
     pathOutput = os.path.abspath(config['runner']['pathOutput'])
@@ -187,8 +189,9 @@ if __name__ == "__main__":
     
     elif config['runner']['whisper'] is not None:
         flag = 'whisper'
+        model_name = f'whisper-{config["runner"]["whisper"]}'
         featureMaker = whisper.load_model(config['runner']['whisper']).to(device)
-
+        print(featureMaker)
     else:
         print("Please specify the speech encoder in the config file.")
         raise
@@ -216,7 +219,7 @@ if __name__ == "__main__":
     print("Starting the clustering...")
     start_time = time.time()
 
-    assert flag in ['fairseq', 's3prl'], "Currently only supported speech encoder from s3prl and fairseq."
+    assert flag in ['fairseq', 's3prl', 'whisper'], "Currently only supported speech encoder from s3prl, fairseq and whisper."
     
     if flag == 'fairseq':
         clusters = kMeanGPU_fairseq(trainLoader, featureMaker.eval(), config['runner']['nClusters'], config['runner']['nGroups'],

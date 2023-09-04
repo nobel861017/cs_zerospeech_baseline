@@ -10,6 +10,7 @@ import torch.nn as nn
 from os.path import join, exists
 from os import remove
 from time import time
+import whisper
 
 
 class kMeanCluster(nn.Module):
@@ -449,8 +450,9 @@ def kMeanGPU_whisper(dataLoader, featureMaker, k, n_group=1,
                     mel = whisper.log_mel_spectrogram(exact_data).to(device) # B, 80, 3000
                     cFeature = featureMaker.embed_audio(mel) # B, 1500, Dim
                     
-                    feature_len = (size // 16000) * 50 # 16000 is sample rate
+                    feature_len = int(size / 16000 * 50)  # 16000 is sample rate
                     cFeature = cFeature[:, :feature_len, :]
+                    
                     cFeature = cFeature.contiguous().view(-1, cFeature.size(2)//n_group)
                     Ck.append(cFeature)
                     if index > k:
@@ -467,7 +469,7 @@ def kMeanGPU_whisper(dataLoader, featureMaker, k, n_group=1,
         perIterSize = len(dataLoader)
 
     clusterStep = kMeanClusterStep(k, D).cuda()
-    clusterStep = torch.nn.DataParallel(clusterStep, device_ids=device_ids)
+    clusterStep = torch.nn.DataParallel(clusterStep)
     clusterStep.module.Ck.copy_(Ck)
 
     bar = progressbar.ProgressBar(maxval=MAX_ITER)
@@ -493,7 +495,7 @@ def kMeanGPU_whisper(dataLoader, featureMaker, k, n_group=1,
                 exact_data = whisper.pad_or_trim(exact_data)
                 mel = whisper.log_mel_spectrogram(exact_data).to(device) # B, 80, 3000
                 cFeature = featureMaker.embed_audio(mel) # B, 1500, Dim
-                feature_len = (size // 16000) * 50 # 16000 is sample rate
+                feature_len = int(size / 16000 * 50) # 16000 is sample rate
                 cFeature = cFeature[:, :feature_len, :]
                 cFeature = cFeature.contiguous().view(-1, 1, D)
 

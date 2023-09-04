@@ -461,7 +461,7 @@ def buildWhisperFeature(featureMaker, seqPath, strict=False,
                 mel = whisper.log_mel_spectrogram(subseq).unsqueeze(0).to(device)
                 features = featureMaker.embed_audio(mel) # (1, Frames, Dim)
 
-                feature_len = (subseq_size // sample_rate) * 50
+                feature_len = int(subseq_size / sample_rate * 50)
                 features = features[:, :feature_len, :]
                 if seqNorm:
                     features = seqNormalization(features)
@@ -478,7 +478,7 @@ def buildWhisperFeature(featureMaker, seqPath, strict=False,
                 subseq = whisper.pad_or_trim(subseq)
                 mel = whisper.log_mel_spectrogram(subseq).unsqueeze(0).to(device)
                 features = featureMaker.embed_audio(mel) # (1, Frames, Dim)
-                feature_len = (subseq_size // sample_rate) * 50
+                feature_len = int(subseq_size / sample_rate * 50)
                 features = features[:, :feature_len, :]
                 
                 if seqNorm:

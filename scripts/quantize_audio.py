@@ -118,9 +118,10 @@ def main(argv):
     print(f"Quantizing data from {config['data']['pathDB']}")
     print("=============================================================")
 
-    assert (config['runner']['cp_path'] is None and config['runner']['s3prl'] is not None) \
-            or (config['runner']['cp_path'] is not None and config['runner']['s3prl'] is None), \
-            "Don't use fairseq model and s3prl model at once."
+    assert (config['runner']['cp_path'] is None and config['runner']['s3prl'] is not None and config['runner']['whisper'] is None) \
+            or (config['runner']['cp_path'] is not None and config['runner']['s3prl'] is None and config['runner']['whisper'] is None) \
+            or (config['runner']['cp_path'] is None and config['runner']['s3prl'] is None and config['runner']['whisper'] is not None), \
+            "Don't use fairseq model, s3prl model or whisper at once."
 
     # Get splits
     if config['data']['split']:
@@ -271,8 +272,8 @@ def main(argv):
     
     elif config['runner']['whisper'] is not None:
         flag = 'whisper'
+        model_name = f'whisper-{config["runner"]["whisper"]}'
         featureMaker = whisper.load_model(config['runner']['whisper']).to(device)
-    
     else:
         print("Please specify the speech encoder in the config file.")
         raise
