@@ -1,12 +1,20 @@
 # multilingual zero resource challenge
 
 
-## Downloading pre-trained XLSR and XLMR model
-Please first download the pretrained model.
+## Download pre-trained XLSR and XLMR model
+Please first download the pre-trained model.
    
 xlsr1B: https://dl.fbaipublicfiles.com/fairseq/wav2vec/xlsr2_960m_1000k.pt
    
 xlmr.base: https://dl.fbaipublicfiles.com/fairseq/models/xlmr.base.tar.gz
+
+## Download code-switched zero resource data
+Run this python code to download the testing data.
+```python3
+# pip install datasets
+from datasets import load_dataset
+dataset = load_dataset("kph68/cs_zerospeech")
+```
 
 ## Training
 * Train the K-means
