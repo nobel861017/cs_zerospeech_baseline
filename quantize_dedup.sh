@@ -16,9 +16,16 @@ dev_output_dir=$exp_name/dev
 python scripts/quantize_audio.py $dev_output_dir --config $config_path
 python scripts/deduplicate.py --output $dev_output_dir --max_units 512 --convert
 
+config_path=scripts/config/config_test.yaml
+test_output_dir=$exp_name/test/
+
+python scripts/quantize_audio.py $test_output_dir --config $config_path
+python scripts/deduplicate.py --output $test_output_dir --max_units 512 --convert
+python scripts/deduplicate.py --output $test_output_dir --max_units 512
+
 # quantize test correct set (3 sets)
 config_path=scripts/config/config_test_correct.yaml
-test_output_correct_dir=$exp_name/test/correct
+test_output_correct_dir=$exp_name/test_cs/correct
 
 python scripts/quantize_audio.py $test_output_correct_dir --config $config_path
 python scripts/deduplicate.py --output $test_output_correct_dir --max_units 512 --convert
@@ -26,7 +33,7 @@ python scripts/deduplicate.py --output $test_output_correct_dir --max_units 512
 
 # quantize test wrong set (3 sets)
 config_path=scripts/config/config_test_wrong.yaml
-test_output_wrong_dir=$exp_name/test/wrong
+test_output_wrong_dir=$exp_name/test_cs/wrong
 
 python scripts/quantize_audio.py $test_output_wrong_dir --config $config_path
 python scripts/deduplicate.py --output $test_output_wrong_dir --max_units 512
@@ -35,7 +42,7 @@ python scripts/deduplicate.py --output $test_output_wrong_dir --max_units 512
 fairseq-preprocess --only-source \
     --trainpref $train_output_dir/dedup_converted.txt \
     --validpref $dev_output_dir/dedup_converted.txt \
-    --testpref $test_output_correct_dir/dedup_converted.txt \
+    --testpref $test_output_dir/dedup_converted.txt \
     --destdir $exp_name/bin \
     --workers $num_workers
 

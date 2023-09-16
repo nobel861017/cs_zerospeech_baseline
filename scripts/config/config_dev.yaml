@@ -1,0 +1,19 @@
+runner:
+  debug: False
+  cp_path: null
+  resume: False
+  strict: True
+  cpu: False
+  pathClusteringCheckpoint: '/work/b08202033/zerospeech2021_baseline/checkpoints/w2v2_large_ll60k_train-clean-100/kmeans_30iter.pt'
+  s3prl: 'wav2vec2_large_ll60k'
+  layer: -1
+  
+data:
+  file_extension: ['flac', 'wav']
+  pathSeq: null
+  split: null
+  max_size_seq: 10240
+  batch_size: 8
+  pathDB: [ "/work/b08202033/zerospeech2021_baseline/datasets/mono_dev/dev/dev-clean"
+          ]
+  
