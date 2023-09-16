@@ -8,6 +8,26 @@ from datasets import load_dataset
 dataset = load_dataset("kph68/cs_zerospeech")
 ```
 
+## Download monolingual data
+```
+# Spanish
+wget https://dl.fbaipublicfiles.com/mls/mls_spanish.tar.gz
+
+# French
+wget https://dl.fbaipublicfiles.com/mls/mls_french.tar.gz
+
+# Chinese
+wget https://www.openslr.org/resources/68/train_set.tar.gz
+wget https://www.openslr.org/resources/68/dev_set.tar.gz
+
+# English
+wget https://www.openslr.org/resources/12/train-clean-100.tar.gz
+https://www.openslr.org/resources/12/dev-clean.tar.gz
+
+# Extreact
+tar zxvf *.tar.gz
+```
+
 ## Training
 * Train the K-means
 
