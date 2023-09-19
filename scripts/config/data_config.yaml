@@ -1,13 +1,14 @@
 cs:
-  data_root: "/work/gerber68/Data/cs_mono/wav/"
+  data_root: "cs_mono/wav/"
   lang: ["es_en", "fr_en", "zh_en"]
   hr: [34, 34, 32]
-  output: "/work/gerber68/Data/cs_mono_sampled/wav/"
+  output: "cs_mono_sampled/wav/"
 
 mono:
-  data_root: "/work/gerber68/Data/mono/"
+  data_root: "mono_data/"
   lang: ["mls_spanish", "mls_french", "train", "train-clean-100"]
-  ext: ["flac", "flac", "wav", "flac"] 
   hr: [25, 25, 25, 25]
-  output: "/work/gerber68/Data/mono_sampled/25hr/"
-
+  # hr: [100, 100, 100, 100]
+  ext: ["flac", "flac", "wav", "flac"]
+  output: mono_sampled/25_each/
+  # output: mono_sampled/100_each/

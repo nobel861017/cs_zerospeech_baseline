@@ -9,11 +9,11 @@ from pathlib import Path
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, default="config/data_config.yaml", help="data configuration")
+    parser.add_argument("--split", type=str, default="dev", help="data split")
     args = parser.parse_args()
     with open(args.config, "r") as fp:
         config = yaml.load(fp, Loader=yaml.FullLoader)
     
-    print(config)
     config = config["mono"]
     mono_data_root = config["data_root"]
     lang_list = config["lang"]
@@ -28,7 +28,9 @@ if __name__ == "__main__":
 
     for lang, total_seconds, ext in zip(lang_list, total_seconds_list, ext_list):
         data_path = os.path.join(mono_data_root, lang)
-        audio_files = list(map(str, list(Path(data_path).rglob("*." + ext))))
+        if "mls" in lang:
+            data_path = os.path.join(data_path, "{}/audio".format(args.split))
+        audio_files = sorted(list(map(str, list(Path(data_path).rglob("*." + ext)))))
         assert len(audio_files) > 0
         d = collections.defaultdict(list)
         d_maxidx = collections.defaultdict(int)
@@ -58,5 +60,6 @@ if __name__ == "__main__":
             if len_count >= total_seconds:
                 break
             key_idx = (key_idx + 1) % len(keys)
-            print(len_count)
+            
+        print(len_count)
     
