@@ -8,4 +8,4 @@ python scripts/compute_proba_BERT.py $exp/test_cs/wrong/dedup_not_converted.txt 
 
 cat $exp/prob/test_correct.txt $exp/prob/test_wrong.txt > $exp/prob/test.txt
 
-python scripts/evaluate_v2.py --input $exp/prob/test.txt
+python scripts/evaluate.py --input $exp/prob/test.txt
