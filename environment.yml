@@ -21,4 +21,3 @@ dependencies:
   - pip:
       - progressbar2
       - "git+https://github.com/pytorch/fairseq.git"
-      - "git+https://github.com/tuanh208/CPC_audio.git@zerospeech"
