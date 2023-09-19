@@ -28,6 +28,14 @@ https://www.openslr.org/resources/12/dev-clean.tar.gz
 tar zxvf *.tar.gz
 ```
 
+## Data samples
+||zh-en|es-en|fr-en|
+|------|-----|------|------|
+|correct|http://sndup.net/kbjv | http://sndup.net/w2tj | http://sndup.net/kpms |
+|wrong|http://sndup.net/gxdk |http://sndup.net/zjxm| http://sndup.net/x39f| 
+
+
+
 ## Training
 * Train the K-means
 
