@@ -65,7 +65,7 @@ bash quantize_dedup.sh
 * Training the unit-LM
 
 
-Please modify the parameters in `train_unit.sh` if needed.
+Please modify the parameters and some paths in `train_unit.sh` if needed.
 ```
 bash train_unit.sh
 ```
@@ -74,7 +74,7 @@ bash train_unit.sh
 * Compute the pseudo-probability
 
 
-Please modify the exp name in `evaluate.sh` first.
+Please modify the exp name and some paths in `evaluate.sh` first.
 ```
 bash evaluate.sh
 ```
