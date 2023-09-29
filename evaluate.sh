@@ -1,4 +1,4 @@
-exp=hubert-xl-en400
+exp=mhubert_kmeans_mix_unit_cs_only
 
 python scripts/compute_proba_BERT.py $exp/test_cs/correct/dedup_not_converted.txt $exp/prob/test_correct.txt \
                                         $exp/checkpoints/checkpoint_best.pt --dict $exp/bin/dict.txt

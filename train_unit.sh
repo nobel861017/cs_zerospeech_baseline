@@ -1,4 +1,4 @@
-exp_name=w2v2_23
+exp_name=mhubert_kmeans_mix_unit_cs_only
 run_id=unitLM_with_maxpos_6144_25k_dedup_lr1e-4
 max_update=25000
 total_num_update=25000
