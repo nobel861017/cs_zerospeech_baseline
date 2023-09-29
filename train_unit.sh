@@ -1,19 +1,19 @@
-exp_name=mhubert-es-fr-en-133hr
-run_id=unitLM_with_maxpos_6144_25k_no_dedup_lr1e-4
+exp_name=w2v2_23
+run_id=unitLM_with_maxpos_6144_25k_dedup_lr1e-4
 max_update=25000
 total_num_update=25000
 warmup_update=1000
 max_positions=6144
 max_tokens=20480
-num_workers=32
-update_freq=16
+num_workers=16
+update_freq=32
 lr=0.0001
 
 export WANDB_RUN_ID=$run_id
 
-fairseq-train --fp16 $exp_name/bin_no_dedup \
+fairseq-train --fp16 $exp_name/bin \
     --task masked_lm --criterion masked_lm \
-    --save-dir $exp_name/checkpoints_6144_25k_no_dedup_lr1e-4/ \
+    --save-dir $exp_name/checkpoints/ \
     --keep-last-epochs 3 \
     --train-subset train \
     --num-workers $num_workers \
