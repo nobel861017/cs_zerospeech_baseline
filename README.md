@@ -29,12 +29,20 @@ tar zxvf *.tar.gz
 ```
 
 ## Data samples
-||zh-en|es-en|fr-en|
-|------|-----|------|------|
-|correct|http://sndup.net/kbjv | http://sndup.net/w2tj | http://sndup.net/kpms |
-|wrong|http://sndup.net/gxdk |http://sndup.net/zjxm| http://sndup.net/x39f| 
+|zh-en|transcript|audio|
+|------|-----|------|
+|correct|他们自称 artist.|http://sndup.net/kbjv | 
+|wrong|他们自称 tasty.|http://sndup.net/gxdk |
 
+|es-en|transcript|audio|
+|------|-----|------|
+|correct|En el presente, los interactive kiosks often have touch screens.|http://sndup.net/w2tj |
+|wrong|En el presente, los interactive pantallas often have touch kiosks.|http://sndup.net/zjxm|
 
+|fr-en|transcript|audio|
+|------|-----|------|
+|correct|Ce dernier has evolved tout au long de l'histoire romaine.|http://sndup.net/kpms |
+|wrong|Ce dernier has evolved tout during la long de l'histoire romaine.|http://sndup.net/x39f| 
 
 ## Training
 * Train the K-means
