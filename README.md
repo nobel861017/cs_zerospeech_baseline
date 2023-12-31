@@ -1,12 +1,17 @@
 # Zero resource code-switched speech challenge
 
 ## Download code-switched zero resource data
-Run this python code to download the testing data.
+Run this python code to download only the testing data.
 ```python3
 # pip install datasets
 from datasets import load_dataset
 dataset = load_dataset("kph68/cs_zerospeech")
 ```
+The full code-switch dataset is available at huggingface
+- [es-en](https://huggingface.co/datasets/ky552/cs_es_en)
+- [fr-en](https://huggingface.co/datasets/ky552/cszs_fr_en)
+- [zh-en](https://huggingface.co/datasets/ky552/cszs_zh_en)
+
 
 ## Download monolingual data
 ```
@@ -77,5 +82,16 @@ bash train_unit.sh
 Please modify the exp name and some paths in `evaluate.sh` first.
 ```
 bash evaluate.sh
+```
+
+## Citation
+If you find this dataset or benchmark useful, please cite the following paper:
+```
+@article{huang2023zero,
+  title={Zero Resource Code-switched Speech Benchmark Using Speech Utterance Pairs For Multiple Spoken Languages},
+  author={Huang, Kuan-Po and Yang, Chih-Kai and Fu, Yu-Kuan and Dunbar, Ewan and Lee, Hung-yi},
+  journal={arXiv preprint arXiv:2310.03018},
+  year={2023}
+}
 ```
 
