@@ -8,7 +8,7 @@ from datasets import load_dataset
 dataset = load_dataset("kph68/cs_zerospeech")
 ```
 The full code-switch dataset is available at huggingface
-- [es-en](https://huggingface.co/datasets/ky552/cs_es_en)
+- [es-en](https://huggingface.co/datasets/ky552/cszs_es_en)
 - [fr-en](https://huggingface.co/datasets/ky552/cszs_fr_en)
 - [zh-en](https://huggingface.co/datasets/ky552/cszs_zh_en)
 
