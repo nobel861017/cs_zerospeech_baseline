@@ -1,5 +1,5 @@
 # Zero resource code-switched speech challenge
-
+This is the baseline system for the benchmark proposed in this ICASSP 2024 paper [Zero Resource Code-Switched Speech Benchmark Using Speech Utterance Pairs for Multiple Spoken Languages](https://ieeexplore.ieee.org/document/10446737).
 ## Download code-switched zero resource data
 Run this python code to download only the testing data.
 ```python3
