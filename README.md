@@ -85,12 +85,23 @@ bash evaluate.sh
 ```
 
 ## Citation
-If you find this dataset or benchmark useful, please cite the following paper:
+If you find this dataset or benchmark useful, please consider citing the following papers:
 ```
-@article{huang2023zero,
-  title={Zero Resource Code-switched Speech Benchmark Using Speech Utterance Pairs For Multiple Spoken Languages},
-  author={Huang, Kuan-Po and Yang, Chih-Kai and Fu, Yu-Kuan and Dunbar, Ewan and Lee, Hung-yi},
-  journal={arXiv preprint arXiv:2310.03018},
+@INPROCEEDINGS{10446737,
+  author={Huang, Kuan-Po and Yang, Chih-Kai and Fu, Yu-Kuan and Dunbar, Ewan and Lee, Hung-Yi},
+  booktitle={ICASSP 2024 - 2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 
+  title={Zero Resource Code-Switched Speech Benchmark Using Speech Utterance Pairs for Multiple Spoken Languages}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={10006-10010},
+  keywords={Speech coding;Benchmark testing;Signal processing;Linguistics;Acoustics;Speech processing;Task analysis;Code-switch;Multilingual;Discrete unit;Zero resource;Self-supervised},
+  doi={10.1109/ICASSP48485.2024.10446737}}
+
+@article{yang2023investigating,
+  title={Investigating Zero-Shot Generalizability on Mandarin-English Code-Switched ASR and Speech-to-text Translation of Recent Foundation Models with Self-Supervision and Weak Supervision},
+  author={Yang, Chih-Kai and Huang, Kuan-Po and Lu, Ke-Han and Kuan, Chun-Yi and Hsiao, Chi-Yuan and Lee, Hung-yi},
+  journal={arXiv preprint arXiv:2401.00273},
   year={2023}
 }
 ```
