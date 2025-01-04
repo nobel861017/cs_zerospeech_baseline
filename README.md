@@ -98,11 +98,13 @@ If you find this dataset or benchmark useful, please consider citing the followi
   keywords={Speech coding;Benchmark testing;Signal processing;Linguistics;Acoustics;Speech processing;Task analysis;Code-switch;Multilingual;Discrete unit;Zero resource;Self-supervised},
   doi={10.1109/ICASSP48485.2024.10446737}}
 
-@article{yang2023investigating,
-  title={Investigating Zero-Shot Generalizability on Mandarin-English Code-Switched ASR and Speech-to-text Translation of Recent Foundation Models with Self-Supervision and Weak Supervision},
+@inproceedings{yang2024investigating,
+  title={Investigating zero-shot generalizability on mandarin-english code-switched asr and speech-to-text translation of recent foundation models with self-supervision and weak supervision},
   author={Yang, Chih-Kai and Huang, Kuan-Po and Lu, Ke-Han and Kuan, Chun-Yi and Hsiao, Chi-Yuan and Lee, Hung-yi},
-  journal={arXiv preprint arXiv:2401.00273},
-  year={2023}
+  booktitle={2024 IEEE International Conference on Acoustics, Speech, and Signal Processing Workshops (ICASSPW)},
+  pages={540--544},
+  year={2024},
+  organization={IEEE}
 }
 ```
 
